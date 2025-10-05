@@ -72,7 +72,7 @@ export function getChatHistory(sessionId: string, limit: number = 50) {
       LIMIT ?
     `)
     
-    stmt.all(sessionId, limit, (err: any, rows) => {
+    stmt.all(sessionId, limit, (err: any, rows: any[]) => {
       if (err) {
         reject(err)
       } else {
@@ -150,7 +150,7 @@ export function getAllChatSessions() {
       ORDER BY last_message DESC
     `)
     
-    stmt.all((err: any, rows) => {
+    stmt.all((err: any, rows: any[]) => {
       if (err) {
         reject(err)
       } else {
@@ -168,7 +168,7 @@ export function getChatSessionMessages(sessionId: string) {
       ORDER BY timestamp ASC
     `)
     
-    stmt.all(sessionId, (err: any, rows) => {
+    stmt.all(sessionId, (err: any, rows: any[]) => {
       if (err) {
         reject(err)
       } else {

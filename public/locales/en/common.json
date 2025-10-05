@@ -1,0 +1,135 @@
+{
+  "cv": {
+    "name": "Smion Đurđević",
+    "title": "Engineering Manager",
+    "summary": "Experienced Engineering Manager and Tech Lead with over 20 years in software development, specializing in .NET, C#, SQL, and team leadership. Currently leading multiple development teams and implementing AI technologies across products.",
+    "email": "smionaz@gmail.com",
+    "phone": "+385 91 614 39 89",
+    "location": "Zagreb, Croatia",
+    "website": "www.smiondev.com",
+    "download": "Download CV",
+    "experience": {
+      "title": "Professional Experience",
+      "job1": {
+        "title": "Engineering Manager",
+        "company": "ASEE Solutions",
+        "period": "2024 - Present",
+        "description": "Leading multiple development teams, planning resources for development projects and upgrades. Defining SDLC and implementing guidelines, creating documentation and testing forms. Implementing SCRUM methodology through adapted ceremonies. Implementing Q&A through manual testing definitions, test automation, and regression testing. Monthly 1:1 meetings with team members, defining career development paths. Currently establishing AI technology department for implementation across all products."
+      },
+      "job2": {
+        "title": "Tech Lead",
+        "company": "NETS CEE",
+        "period": "2021 - 2024",
+        "description": "Leading development team using SCRUM methodology. Daily team member tracking through daily meetings. Participating in multi-month sprint planning using Miro board. Code review through TFS combined with GIT system. Daily work in Visual Studio with .NET, C#, and databases using SqlDbx, AQT and SMSS tools. Development of web services and testing."
+      },
+      "job3": {
+        "title": "Team Lead",
+        "company": "ZUBAK GRUPA",
+        "period": "2015 - 2020",
+        "description": "Leading development team, defining daily tasks. Team member tracking through daily meetings. Implementing Dynamic CRM in cloud. Developing CRM integrations with external systems. Daily work on SQL stored procedures. Preparing for transition to scalable systems (Docker, Kubernetes). Implementing Azure infrastructure and TFS Azure services. Introducing Git for easier source code management."
+      }
+    },
+    "education": {
+      "title": "Education",
+      "degree1": {
+        "title": "Leadership Program",
+        "institution": "Institut za inovacije, Zagreb",
+        "period": "2017 - 2020"
+      },
+      "degree2": {
+        "title": "Informatički programer - manager",
+        "institution": "Poslovna škola start, Zagreb",
+        "period": "2002 - 2003"
+      }
+    },
+    "skills": {
+      "title": "Skills",
+      "technical": {
+        "title": "Technical Skills",
+        "skill1": "C# .NET",
+        "skill2": "SQL Server",
+        "skill3": "Azure Cloud",
+        "skill4": "Team Leadership"
+      },
+      "languages": {
+        "title": "Programming Languages",
+        "skill1": "C#",
+        "skill2": "VB.NET",
+        "skill3": "JavaScript",
+        "skill4": "SQL"
+      },
+      "tools": {
+        "title": "Tools & Technologies",
+        "skill1": "Visual Studio",
+        "skill2": "TFS/Git",
+        "skill3": "Docker/Kubernetes",
+        "skill4": "SCRUM/JIRA"
+      }
+    },
+    "certifications": {
+      "title": "Certifications",
+      "cert1": {
+        "title": "Microsoft Certified Professional (MCP)",
+        "issuer": "Microsoft",
+        "date": "2003"
+      },
+      "cert2": {
+        "title": "Microsoft NAV CRM Certification",
+        "issuer": "Microsoft",
+        "date": "2003"
+      },
+      "cert3": {
+        "title": "Microsoft SharePoint Developer",
+        "issuer": "Microsoft",
+        "date": "2003"
+      }
+    }
+  },
+  "chatbot": {
+    "title": "Ask me anything about my experience!",
+    "placeholder": "Type your question here...",
+    "send": "Send",
+    "thinking": "Thinking...",
+    "error": "Sorry, I couldn't process your request. Please try again."
+  },
+  "chess": {
+    "title": "Chess Game",
+    "description": "Play against AI! Ask one question after each move.",
+    "status": "Status",
+    "moves": "Moves",
+    "new_game": "New Game",
+    "how_to_play": "How to Play",
+    "instructions": [
+      "Click on a piece to select it (highlighted squares show possible moves)",
+      "Click on a destination square to move",
+      "After each move, you can ask ONE question in the chatbot",
+      "The AI will make its move automatically",
+      "Try to checkmate the AI king!"
+    ],
+    "instructions.0": "Click on a piece to select it (highlighted squares show possible moves)",
+    "instructions.1": "Click on a destination square to move",
+    "instructions.2": "After each move, you can ask ONE question in the chatbot",
+    "instructions.3": "The AI will make its move automatically",
+    "instructions.4": "Try to checkmate the AI king!",
+    "white_wins": "White wins!",
+    "black_wins": "Black wins!",
+    "draw": "Draw!",
+    "white_check": "White is in check",
+    "black_check": "Black is in check",
+    "white_turn": "White to move",
+    "black_turn": "Black to move",
+    "chess_assistant": "Chess Assistant",
+    "questions": "Questions",
+    "ask_about_smion": "Ask about Smion's experience...",
+    "make_move_to_ask": "Make another move to ask a question...",
+    "question_limit_warning": "⚠️ You've used your question for this move. Make another chess move to ask again!",
+    "cv_options_title": "Would you like to view Smion's CV or continue playing chess?",
+    "view_cv": "View CV",
+    "continue_chess": "Continue Chess",
+    "cv": {
+      "title": "Smion Đurđević - CV",
+      "subtitle": "Professional Profile & Experience",
+      "back_to_chess": "Back to Chess Game"
+    }
+  }
+}

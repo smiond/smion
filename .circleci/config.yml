@@ -1,0 +1,53 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: node:18-alpine
+    working_directory: /app
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - run:
+          name: Build application
+          command: npm run build
+          environment:
+            OPENAI_API_KEY: $OPENAI_API_KEY
+      - persist_to_workspace:
+          root: /app
+          paths:
+            - .next
+            - node_modules
+            - package.json
+            - package-lock.json
+
+  deploy:
+    docker:
+      - image: node:18-alpine
+    working_directory: /app
+    steps:
+      - attach_workspace:
+          at: /app
+      - run:
+          name: Deploy to Vercel
+          command: |
+            npm install -g vercel
+            vercel --token $VERCEL_TOKEN --prod
+
+workflows:
+  build-and-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main
+

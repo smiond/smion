@@ -1,0 +1,135 @@
+{
+  "cv": {
+    "name": "Smion Đurđević",
+    "title": "Engineering Manager",
+    "summary": "Iskusan Engineering Manager i Tech Lead s više od 20 godina iskustva u razvoju softvera, specijaliziran za .NET, C#, SQL i vođenje timova. Trenutno vodim više razvojnih timova i implementiram AI tehnologije kroz proizvode.",
+    "email": "smionaz@gmail.com",
+    "phone": "+385 91 614 39 89",
+    "location": "Zagreb, Hrvatska",
+    "website": "www.smiondev.com",
+    "download": "Preuzmi CV",
+    "experience": {
+      "title": "Radno Iskustvo",
+      "job1": {
+        "title": "Engineering Manager",
+        "company": "ASEE Solutions",
+        "period": "2024 - Sada",
+        "description": "Vođenje više razvojnih timova. Planiranje resursa kod development-a projekata, nadogradnji postojećih rješenja. Definiranje SDLC-a i provođenje definiranih smjernica, izrada dokumentacije, izrada formi za testiranje članova tima. Provođenje SCRUM metodologije kroz prilagođene ceremonije. Implementacija Q&A kroz definicije manual testing-a, automatiziranje testova, regresije. Mjesečni razgovori 1:1 s svakim članom tima, definiranje smjera razvoja svakog člana tima. Trenutno uspostavljam odjel koji se bavi AI tehnologijom koja se implementira u svaki proizvod."
+      },
+      "job2": {
+        "title": "Tech Lead",
+        "company": "NETS CEE",
+        "period": "2021 - 2024",
+        "description": "Vođenje razvojnog tima koristeći SCRUM metodologiju. Praćenje članova tima kroz dnevne sastanke (daily meetings). Učestvovanje u planiranju više mjesečnih sprintova - iteracija (Miro board). Code review preko TFS-a u kombinaciji s GIT sustavom. Svakodnevni rad u Visual Studiu u .NET-u, C#, te na bazama podataka koristeći razne alate kao što su SqlDbx, AQT i SMSS."
+      },
+      "job3": {
+        "title": "Team Lead",
+        "company": "ZUBAK GRUPA",
+        "period": "2015 - 2020",
+        "description": "Vođenje razvojnog tima, definiranje dnevnih zadataka. Praćenje članova tima kroz dnevne sastanke. Implementacija Dynamic CRM-a u oblaku. Razvoj integracija CRM sustava s ostalim vanjskim sustavima. Svakodnevni rad na SQL sp. Priprema za prelazak na skalabilne sustave (Docker, Kubernetes). Implementacija Azure kao infrastrukturu i za razvoj preko TFS Azure servisa."
+      }
+    },
+    "education": {
+      "title": "Obrazovanje",
+      "degree1": {
+        "title": "Leadership Program",
+        "institution": "Institut za inovacije, Zagreb",
+        "period": "2017 - 2020"
+      },
+      "degree2": {
+        "title": "Informatički programer - manager",
+        "institution": "Poslovna škola start, Zagreb",
+        "period": "2002 - 2003"
+      }
+    },
+    "skills": {
+      "title": "Vještine",
+      "technical": {
+        "title": "Tehničke Vještine",
+        "skill1": "C# .NET",
+        "skill2": "SQL Server",
+        "skill3": "Azure Cloud",
+        "skill4": "Vođenje Timova"
+      },
+      "languages": {
+        "title": "Programski Jezici",
+        "skill1": "C#",
+        "skill2": "VB.NET",
+        "skill3": "JavaScript",
+        "skill4": "SQL"
+      },
+      "tools": {
+        "title": "Alati i Tehnologije",
+        "skill1": "Visual Studio",
+        "skill2": "TFS/Git",
+        "skill3": "Docker/Kubernetes",
+        "skill4": "SCRUM/JIRA"
+      }
+    },
+    "certifications": {
+      "title": "Certifikati",
+      "cert1": {
+        "title": "Microsoft Certified Professional (MCP)",
+        "issuer": "Microsoft",
+        "date": "2003"
+      },
+      "cert2": {
+        "title": "Microsoft NAV CRM Certifikacija",
+        "issuer": "Microsoft",
+        "date": "2003"
+      },
+      "cert3": {
+        "title": "Microsoft SharePoint Developer",
+        "issuer": "Microsoft",
+        "date": "2003"
+      }
+    }
+  },
+  "chatbot": {
+    "title": "Pitajte me bilo što o mom iskustvu!",
+    "placeholder": "Upišite svoje pitanje ovdje...",
+    "send": "Pošalji",
+    "thinking": "Razmišljam...",
+    "error": "Oprostite, nisam mogao obraditi vaš zahtjev. Molimo pokušajte ponovno."
+  },
+  "chess": {
+    "title": "Šahovska igra",
+    "description": "Igrajte protiv AI-ja! Postavite jedno pitanje nakon svakog poteza.",
+    "status": "Status",
+    "moves": "Potezi",
+    "new_game": "Nova igra",
+    "how_to_play": "Kako igrati",
+    "instructions": [
+      "Kliknite na figuru da je odaberete (označena polja pokazuju moguće poteze)",
+      "Kliknite na odredišno polje da napravite potez",
+      "Nakon svakog poteza možete postaviti JEDNO pitanje u chatbotu",
+      "AI će automatski napraviti svoj potez",
+      "Pokušajte matirati AI kralja!"
+    ],
+    "instructions.0": "Kliknite na figuru da je odaberete (označena polja pokazuju moguće poteze)",
+    "instructions.1": "Kliknite na odredišno polje da napravite potez",
+    "instructions.2": "Nakon svakog poteza možete postaviti JEDNO pitanje u chatbotu",
+    "instructions.3": "AI će automatski napraviti svoj potez",
+    "instructions.4": "Pokušajte matirati AI kralja!",
+    "white_wins": "Bijeli pobjeđuje!",
+    "black_wins": "Crni pobjeđuje!",
+    "draw": "Neriješeno!",
+    "white_check": "Bijeli je u šahu",
+    "black_check": "Crni je u šahu",
+    "white_turn": "Bijeli na potezu",
+    "black_turn": "Crni na potezu",
+    "chess_assistant": "Šahovski asistent",
+    "questions": "Pitanja",
+    "ask_about_smion": "Pitajte o Smionovom iskustvu...",
+    "make_move_to_ask": "Napravite još jedan potez da postavite pitanje...",
+    "question_limit_warning": "⚠️ Već ste postavili pitanje za ovaj potez. Napravite još jedan šahovski potez da ponovno pitate!",
+    "cv_options_title": "Želite li pogledati Smionov CV ili nastaviti šahovsku igru?",
+    "view_cv": "Pogledaj CV",
+    "continue_chess": "Nastavi Šah",
+    "cv": {
+      "title": "Smion Đurđević - CV",
+      "subtitle": "Profesionalni profil i iskustvo",
+      "back_to_chess": "Povratak na šahovsku igru"
+    }
+  }
+}

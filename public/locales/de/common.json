@@ -1,0 +1,135 @@
+{
+  "cv": {
+    "name": "Smion Đurđević",
+    "title": "Engineering Manager",
+    "summary": "Erfahrener Engineering Manager und Tech Lead mit über 20 Jahren Erfahrung in der Softwareentwicklung, spezialisiert auf .NET, C#, SQL und Teamführung. Führe derzeit mehrere Entwicklungsteams und implementiere KI-Technologien in Produkten.",
+    "email": "smionaz@gmail.com",
+    "phone": "+385 91 614 39 89",
+    "location": "Zagreb, Kroatien",
+    "website": "www.smiondev.com",
+    "download": "CV herunterladen",
+    "experience": {
+      "title": "Berufserfahrung",
+      "job1": {
+        "title": "Engineering Manager",
+        "company": "ASEE Solutions",
+        "period": "2024 - Heute",
+        "description": "Führe mehrere Entwicklungsteams, plane Ressourcen für Entwicklungsprojekte und Upgrades. Definiere SDLC und implementiere Richtlinien, erstelle Dokumentation und Testformulare. Implementiere SCRUM-Methodologie durch angepasste Zeremonien. Implementiere Q&A durch manuelle Testdefinitionen, Testautomatisierung und Regressionstests. Monatliche 1:1-Gespräche mit Teammitgliedern, definiere Karriereentwicklungspfade. Stelle derzeit KI-Technologieabteilung für die Implementierung in allen Produkten auf."
+      },
+      "job2": {
+        "title": "Tech Lead",
+        "company": "NETS CEE",
+        "period": "2021 - 2024",
+        "description": "Führe Entwicklungsteam mit SCRUM-Methodologie. Tägliche Verfolgung von Teammitgliedern durch Daily Meetings. Teilnahme an mehreren monatlichen Sprint-Planungen mit Miro Board. Code-Review über TFS kombiniert mit GIT-System. Tägliche Arbeit in Visual Studio mit .NET, C# und Datenbanken mit Tools wie SqlDbx, AQT und SMSS."
+      },
+      "job3": {
+        "title": "Team Lead",
+        "company": "ZUBAK GRUPA",
+        "period": "2015 - 2020",
+        "description": "Führe Entwicklungsteam, definiere tägliche Aufgaben. Verfolge Teammitglieder durch tägliche Meetings. Implementiere Dynamic CRM in der Cloud. Entwickle CRM-Integrationen mit externen Systemen. Tägliche Arbeit an SQL-Stored Procedures. Vorbereitung auf den Übergang zu skalierbaren Systemen (Docker, Kubernetes). Implementiere Azure-Infrastruktur und TFS Azure Services."
+      }
+    },
+    "education": {
+      "title": "Bildung",
+      "degree1": {
+        "title": "Leadership Program",
+        "institution": "Institut za inovacije, Zagreb",
+        "period": "2017 - 2020"
+      },
+      "degree2": {
+        "title": "Informatiker - Manager",
+        "institution": "Poslovna škola start, Zagreb",
+        "period": "2002 - 2003"
+      }
+    },
+    "skills": {
+      "title": "Fähigkeiten",
+      "technical": {
+        "title": "Technische Fähigkeiten",
+        "skill1": "C# .NET",
+        "skill2": "SQL Server",
+        "skill3": "Azure Cloud",
+        "skill4": "Teamführung"
+      },
+      "languages": {
+        "title": "Programmiersprachen",
+        "skill1": "C#",
+        "skill2": "VB.NET",
+        "skill3": "JavaScript",
+        "skill4": "SQL"
+      },
+      "tools": {
+        "title": "Tools & Technologien",
+        "skill1": "Visual Studio",
+        "skill2": "TFS/Git",
+        "skill3": "Docker/Kubernetes",
+        "skill4": "SCRUM/JIRA"
+      }
+    },
+    "certifications": {
+      "title": "Zertifizierungen",
+      "cert1": {
+        "title": "Microsoft Certified Professional (MCP)",
+        "issuer": "Microsoft",
+        "date": "2003"
+      },
+      "cert2": {
+        "title": "Microsoft NAV CRM Zertifizierung",
+        "issuer": "Microsoft",
+        "date": "2003"
+      },
+      "cert3": {
+        "title": "Microsoft SharePoint Developer",
+        "issuer": "Microsoft",
+        "date": "2003"
+      }
+    }
+  },
+  "chatbot": {
+    "title": "Fragen Sie mich alles über meine Erfahrung!",
+    "placeholder": "Geben Sie hier Ihre Frage ein...",
+    "send": "Senden",
+    "thinking": "Denke nach...",
+    "error": "Entschuldigung, ich konnte Ihre Anfrage nicht verarbeiten. Bitte versuchen Sie es erneut."
+  },
+  "chess": {
+    "title": "Schachspiel",
+    "description": "Spielen Sie gegen KI! Stellen Sie nach jedem Zug eine Frage.",
+    "status": "Status",
+    "moves": "Züge",
+    "new_game": "Neues Spiel",
+    "how_to_play": "Wie man spielt",
+    "instructions": [
+      "Klicken Sie auf eine Figur, um sie auszuwählen (hervorgehobene Felder zeigen mögliche Züge)",
+      "Klicken Sie auf das Zielfeld, um zu ziehen",
+      "Nach jedem Zug können Sie EINE Frage im Chatbot stellen",
+      "Die KI wird automatisch ihren Zug machen",
+      "Versuchen Sie, den KI-König matt zu setzen!"
+    ],
+    "instructions.0": "Klicken Sie auf eine Figur, um sie auszuwählen (hervorgehobene Felder zeigen mögliche Züge)",
+    "instructions.1": "Klicken Sie auf das Zielfeld, um zu ziehen",
+    "instructions.2": "Nach jedem Zug können Sie EINE Frage im Chatbot stellen",
+    "instructions.3": "Die KI wird automatisch ihren Zug machen",
+    "instructions.4": "Versuchen Sie, den KI-König matt zu setzen!",
+    "white_wins": "Weiß gewinnt!",
+    "black_wins": "Schwarz gewinnt!",
+    "draw": "Unentschieden!",
+    "white_check": "Weiß steht im Schach",
+    "black_check": "Schwarz steht im Schach",
+    "white_turn": "Weiß ist am Zug",
+    "black_turn": "Schwarz ist am Zug",
+    "chess_assistant": "Schach-Assistent",
+    "questions": "Fragen",
+    "ask_about_smion": "Fragen Sie nach Smions Erfahrung...",
+    "make_move_to_ask": "Machen Sie einen weiteren Zug, um eine Frage zu stellen...",
+    "question_limit_warning": "⚠️ Sie haben bereits Ihre Frage für diesen Zug gestellt. Machen Sie einen weiteren Schachzug, um erneut zu fragen!",
+    "cv_options_title": "Möchten Sie Smions Lebenslauf ansehen oder Schach weiterspielen?",
+    "view_cv": "Lebenslauf ansehen",
+    "continue_chess": "Schach fortsetzen",
+    "cv": {
+      "title": "Smion Đurđević - Lebenslauf",
+      "subtitle": "Berufliches Profil & Erfahrung",
+      "back_to_chess": "Zurück zum Schachspiel"
+    }
+  }
+}

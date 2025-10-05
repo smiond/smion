@@ -53,7 +53,7 @@ export function saveChatMessage(sessionId: string, message: string, isUser: bool
       VALUES (?, ?, ?, ?)
     `)
     
-    stmt.run(sessionId, message, isUser, language, function(err: any) {
+    stmt.run(sessionId, message, isUser, language, function(this: sqlite3.RunResult, err: any) {
       if (err) {
         reject(err)
       } else {
@@ -90,7 +90,7 @@ export function saveCVData(section: string, language: string, data: string) {
       VALUES (?, ?, ?, CURRENT_TIMESTAMP)
     `)
     
-    stmt.run(section, language, data, function(err: any) {
+    stmt.run(section, language, data, function(this: sqlite3.RunResult, err: any) {
       if (err) {
         reject(err)
       } else {
@@ -184,7 +184,7 @@ export function deleteChatSession(sessionId: string) {
       DELETE FROM chat_history WHERE session_id = ?
     `)
     
-    stmt.run(sessionId, function(err: any) {
+    stmt.run(sessionId, function(this: sqlite3.RunResult, err: any) {
       if (err) {
         reject(err)
       } else {

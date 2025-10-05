@@ -71,6 +71,14 @@ const cvData = {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('OpenAI API key is not configured')
+      return NextResponse.json({ 
+        error: 'OpenAI API key is not configured. Please add OPENAI_API_KEY to your environment variables.' 
+      }, { status: 500 })
+    }
+
     const { message, language = 'en', sessionId } = await request.json()
 
     if (!message) {
@@ -81,7 +89,12 @@ export async function POST(request: NextRequest) {
     const currentSessionId = sessionId || crypto.randomUUID()
 
     // Save user message to database
-    await saveChatMessage(currentSessionId, message, true, language)
+    try {
+      await saveChatMessage(currentSessionId, message, true, language)
+    } catch (dbError) {
+      console.error('Database error saving user message:', dbError)
+      // Continue without saving to database
+    }
 
     // Create context from CV data
     const context = `
@@ -135,7 +148,12 @@ ${cvData.certifications.map(cert => `
     const response = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response."
 
     // Save AI response to database
-    await saveChatMessage(currentSessionId, response, false, language)
+    try {
+      await saveChatMessage(currentSessionId, response, false, language)
+    } catch (dbError) {
+      console.error('Database error saving AI response:', dbError)
+      // Continue without saving to database
+    }
 
     return NextResponse.json({ 
       response, 

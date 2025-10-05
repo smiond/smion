@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@types/uuid": "^11.0.0",
-    "better-sqlite3": "^9.2.2",
     "chess.js": "^1.4.0",
     "framer-motion": "^10.16.0",
     "i18next": "^23.7.0",
@@ -25,7 +24,7 @@
     "react-dom": "^18.2.0",
     "react-i18next": "^13.5.0",
     "react-markdown": "^9.0.1",
-    "sqlite3": "^5.1.6",
+    "sqlite3": "^5.1.7",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

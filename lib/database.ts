@@ -1,128 +1,200 @@
-import Database from 'better-sqlite3'
+import sqlite3 from 'sqlite3'
 import path from 'path'
 
 const dbPath = path.join(process.cwd(), 'cv_database.db')
-const db = new Database(dbPath)
+const db = new sqlite3.Database(dbPath)
 
 // Initialize database tables
 export function initDatabase() {
-  // Chat history table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS chat_history (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      session_id TEXT NOT NULL,
-      message TEXT NOT NULL,
-      is_user BOOLEAN NOT NULL,
-      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-      language TEXT DEFAULT 'en'
-    )
-  `)
-
-  // CV data table (for dynamic updates)
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS cv_data (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      section TEXT NOT NULL,
-      language TEXT NOT NULL,
-      data TEXT NOT NULL,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
-
-  console.log('Database initialized successfully')
+  return new Promise<void>((resolve, reject) => {
+    // Chat history table
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS chat_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT NOT NULL,
+        message TEXT NOT NULL,
+        is_user BOOLEAN NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        language TEXT DEFAULT 'en'
+      )
+    `, (err) => {
+      if (err) {
+        reject(err)
+        return
+      }
+      
+      // CV data table (for dynamic updates)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS cv_data (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          section TEXT NOT NULL,
+          language TEXT NOT NULL,
+          data TEXT NOT NULL,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `, (err) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        
+        console.log('Database initialized successfully')
+        resolve()
+      })
+    })
+  })
 }
 
 // Chat history functions
 export function saveChatMessage(sessionId: string, message: string, isUser: boolean, language: string = 'en') {
-  const stmt = db.prepare(`
-    INSERT INTO chat_history (session_id, message, is_user, language)
-    VALUES (?, ?, ?, ?)
-  `)
-  
-  return stmt.run(sessionId, message, isUser, language)
+  return new Promise<sqlite3.RunResult>((resolve, reject) => {
+    const stmt = db.prepare(`
+      INSERT INTO chat_history (session_id, message, is_user, language)
+      VALUES (?, ?, ?, ?)
+    `)
+    
+    stmt.run(sessionId, message, isUser, language, function(err) {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(this)
+      }
+    })
+  })
 }
 
 export function getChatHistory(sessionId: string, limit: number = 50) {
-  const stmt = db.prepare(`
-    SELECT * FROM chat_history 
-    WHERE session_id = ? 
-    ORDER BY timestamp DESC 
-    LIMIT ?
-  `)
-  
-  return stmt.all(sessionId, limit)
+  return new Promise<any[]>((resolve, reject) => {
+    const stmt = db.prepare(`
+      SELECT * FROM chat_history 
+      WHERE session_id = ? 
+      ORDER BY timestamp DESC 
+      LIMIT ?
+    `)
+    
+    stmt.all(sessionId, limit, (err, rows) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(rows || [])
+      }
+    })
+  })
 }
 
 // CV data functions
 export function saveCVData(section: string, language: string, data: string) {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO cv_data (section, language, data, updated_at)
-    VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-  `)
-  
-  return stmt.run(section, language, data)
+  return new Promise<sqlite3.RunResult>((resolve, reject) => {
+    const stmt = db.prepare(`
+      INSERT OR REPLACE INTO cv_data (section, language, data, updated_at)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    `)
+    
+    stmt.run(section, language, data, function(err) {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(this)
+      }
+    })
+  })
 }
 
 export function getCVData(section: string, language: string) {
-  const stmt = db.prepare(`
-    SELECT data FROM cv_data 
-    WHERE section = ? AND language = ?
-  `)
-  
-  const result = stmt.get(section, language)
-  return result ? JSON.parse(result.data) : null
+  return new Promise<any>((resolve, reject) => {
+    const stmt = db.prepare(`
+      SELECT data FROM cv_data 
+      WHERE section = ? AND language = ?
+    `)
+    
+    stmt.get(section, language, (err, row: any) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(row ? JSON.parse(row.data) : null)
+      }
+    })
+  })
 }
 
 export function getAllCVData(language: string) {
-  const stmt = db.prepare(`
-    SELECT section, data FROM cv_data 
-    WHERE language = ?
-  `)
-  
-  const results = stmt.all(language)
-  const cvData: any = {}
-  
-  results.forEach((row: any) => {
-    cvData[row.section] = JSON.parse(row.data)
+  return new Promise<any>((resolve, reject) => {
+    const stmt = db.prepare(`
+      SELECT section, data FROM cv_data 
+      WHERE language = ?
+    `)
+    
+    stmt.all(language, (err, rows: any[]) => {
+      if (err) {
+        reject(err)
+      } else {
+        const cvData: any = {}
+        rows.forEach((row: any) => {
+          cvData[row.section] = JSON.parse(row.data)
+        })
+        resolve(cvData)
+      }
+    })
   })
-  
-  return cvData
 }
 
 export function getAllChatSessions() {
-  const stmt = db.prepare(`
-    SELECT DISTINCT session_id, 
-           MIN(timestamp) as first_message,
-           MAX(timestamp) as last_message,
-           COUNT(*) as message_count
-    FROM chat_history 
-    GROUP BY session_id 
-    ORDER BY last_message DESC
-  `)
-  
-  return stmt.all()
+  return new Promise<any[]>((resolve, reject) => {
+    const stmt = db.prepare(`
+      SELECT DISTINCT session_id, 
+             MIN(timestamp) as first_message,
+             MAX(timestamp) as last_message,
+             COUNT(*) as message_count
+      FROM chat_history 
+      GROUP BY session_id 
+      ORDER BY last_message DESC
+    `)
+    
+    stmt.all((err, rows) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(rows || [])
+      }
+    })
+  })
 }
 
 export function getChatSessionMessages(sessionId: string) {
-  const stmt = db.prepare(`
-    SELECT * FROM chat_history 
-    WHERE session_id = ? 
-    ORDER BY timestamp ASC
-  `)
-  
-  return stmt.all(sessionId)
+  return new Promise<any[]>((resolve, reject) => {
+    const stmt = db.prepare(`
+      SELECT * FROM chat_history 
+      WHERE session_id = ? 
+      ORDER BY timestamp ASC
+    `)
+    
+    stmt.all(sessionId, (err, rows) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(rows || [])
+      }
+    })
+  })
 }
 
 export function deleteChatSession(sessionId: string) {
-  const stmt = db.prepare(`
-    DELETE FROM chat_history WHERE session_id = ?
-  `)
-  
-  return stmt.run(sessionId)
+  return new Promise<sqlite3.RunResult>((resolve, reject) => {
+    const stmt = db.prepare(`
+      DELETE FROM chat_history WHERE session_id = ?
+    `)
+    
+    stmt.run(sessionId, function(err) {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(this)
+      }
+    })
+  })
 }
 
 // Initialize database on import
-initDatabase()
+initDatabase().catch(console.error)
 
 export default db
-

@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     const currentSessionId = sessionId || crypto.randomUUID()
 
     // Save user message to database
-    saveChatMessage(currentSessionId, message, true, language)
+    await saveChatMessage(currentSessionId, message, true, language)
 
     // Create context from CV data
     const context = `
@@ -135,7 +135,7 @@ ${cvData.certifications.map(cert => `
     const response = completion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response."
 
     // Save AI response to database
-    saveChatMessage(currentSessionId, response, false, language)
+    await saveChatMessage(currentSessionId, response, false, language)
 
     return NextResponse.json({ 
       response, 

@@ -9,19 +9,19 @@ export async function GET(request: NextRequest) {
 
     if (action === 'sessions') {
       // Get all chat sessions
-      const sessions = getAllChatSessions()
+      const sessions = await getAllChatSessions()
       return NextResponse.json({ sessions })
     }
 
     if (sessionId && action === 'messages') {
       // Get messages for specific session
-      const messages = getChatSessionMessages(sessionId)
+      const messages = await getChatSessionMessages(sessionId)
       return NextResponse.json({ messages })
     }
 
     if (sessionId && action === 'delete') {
       // Delete specific session
-      const result = deleteChatSession(sessionId)
+      const result = await deleteChatSession(sessionId)
       return NextResponse.json({ 
         success: true, 
         deletedRows: result.changes 
@@ -47,7 +47,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 })
     }
 
-    const result = deleteChatSession(sessionId)
+    const result = await deleteChatSession(sessionId)
     
     return NextResponse.json({ 
       success: true, 

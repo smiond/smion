@@ -53,7 +53,7 @@ export function saveChatMessage(sessionId: string, message: string, isUser: bool
       VALUES (?, ?, ?, ?)
     `)
     
-    stmt.run(sessionId, message, isUser, language, function(err) {
+    stmt.run(sessionId, message, isUser, language, function(err: any) {
       if (err) {
         reject(err)
       } else {
@@ -72,7 +72,7 @@ export function getChatHistory(sessionId: string, limit: number = 50) {
       LIMIT ?
     `)
     
-    stmt.all(sessionId, limit, (err, rows) => {
+    stmt.all(sessionId, limit, (err: any, rows) => {
       if (err) {
         reject(err)
       } else {
@@ -90,7 +90,7 @@ export function saveCVData(section: string, language: string, data: string) {
       VALUES (?, ?, ?, CURRENT_TIMESTAMP)
     `)
     
-    stmt.run(section, language, data, function(err) {
+    stmt.run(section, language, data, function(err: any) {
       if (err) {
         reject(err)
       } else {
@@ -107,7 +107,7 @@ export function getCVData(section: string, language: string) {
       WHERE section = ? AND language = ?
     `)
     
-    stmt.get(section, language, (err, row: any) => {
+    stmt.get(section, language, (err: any, row: any) => {
       if (err) {
         reject(err)
       } else {
@@ -124,7 +124,7 @@ export function getAllCVData(language: string) {
       WHERE language = ?
     `)
     
-    stmt.all(language, (err, rows: any[]) => {
+    stmt.all(language, (err: any, rows: any[]) => {
       if (err) {
         reject(err)
       } else {
@@ -150,7 +150,7 @@ export function getAllChatSessions() {
       ORDER BY last_message DESC
     `)
     
-    stmt.all((err, rows) => {
+    stmt.all((err: any, rows) => {
       if (err) {
         reject(err)
       } else {
@@ -168,7 +168,7 @@ export function getChatSessionMessages(sessionId: string) {
       ORDER BY timestamp ASC
     `)
     
-    stmt.all(sessionId, (err, rows) => {
+    stmt.all(sessionId, (err: any, rows) => {
       if (err) {
         reject(err)
       } else {
@@ -184,7 +184,7 @@ export function deleteChatSession(sessionId: string) {
       DELETE FROM chat_history WHERE session_id = ?
     `)
     
-    stmt.run(sessionId, function(err) {
+    stmt.run(sessionId, function(err: any) {
       if (err) {
         reject(err)
       } else {

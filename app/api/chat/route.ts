@@ -98,43 +98,37 @@ function detectLanguage(message: string): string {
 
 // Ollama Cloud API function using Ollama client with fail-fast timeout
 async function callOllamaCloud(prompt: string, language: string, timeoutMs: number = 40000) {
-  const ollamaUrl = process.env.OLLAMA_URL || 'https://api.ollama.ai'
+  const baseURL = (process.env.OLLAMA_URL || 'https://api.ollama.ai').replace(/\/$/, '') + '/v1'
   const model = process.env.OLLAMA_MODEL || 'llama3.1'
-  
-  const ollama = new Ollama({
-    host: ollamaUrl,
-    headers: {
-      'Authorization': `Bearer ${ollamaApiKey}`
-    }
+
+  const client = new OpenAI({
+    apiKey: ollamaApiKey,
+    baseURL,
   })
 
-  const chatPromise = ollama.chat({
-    model: model,
-    messages: [
-      {
-        role: 'system',
-        content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. Keep responses concise and relevant. Respond in ${language === 'hr' ? 'Croatian' : language === 'de' ? 'German' : 'English'}.`
-      },
-      {
-        role: 'user',
-        content: prompt
-      }
-    ],
-    options: {
+  const controller = new AbortController()
+  const id = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const completion = await client.chat.completions.create({
+      model,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. Keep responses concise and relevant. Respond in ${language === 'hr' ? 'Croatian' : language === 'de' ? 'German' : 'English'}.`
+        },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: MAX_OUTPUT_TOKENS,
       temperature: DEFAULT_TEMPERATURE,
-      num_predict: MAX_OUTPUT_TOKENS,
-    }
-  })
-
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    const id = setTimeout(() => {
-      clearTimeout(id)
-      reject(new Error('OLLAMA_TIMEOUT'))
-    }, timeoutMs)
-  })
-
-  const response = await Promise.race([chatPromise, timeoutPromise]) as any
-  return response?.message?.content || "I'm sorry, I couldn't generate a response."
+    }, { signal: controller.signal as any }) as any
+    const text = completion.choices?.[0]?.message?.content
+    return text || "I'm sorry, I couldn't generate a response."
+  } catch (e: any) {
+    if (e?.name === 'AbortError') throw new Error('OLLAMA_TIMEOUT')
+    throw e
+  } finally {
+    clearTimeout(id)
+  }
 }
 
 // Quick Ollama Cloud healthcheck - verifies URL/key/model accessibility fast

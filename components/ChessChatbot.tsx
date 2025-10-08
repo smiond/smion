@@ -70,9 +70,12 @@ export function ChessChatbot({ questionCount, maxQuestionsPerMove, onQuestionAsk
     setInputText('')
     setIsLoading(true)
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => {
+      controller.abort()
+    }, 20000) // 20s timeout
+
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 20000) // 20s timeout
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -122,6 +125,7 @@ export function ChessChatbot({ questionCount, maxQuestionsPerMove, onQuestionAsk
       setMessages(prev => [...prev, botMessage])
       onQuestionAsked() // Notify parent component that a question was asked
     } catch (error: any) {
+      clearTimeout(timeoutId)
       console.error('Error sending message:', error)
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),

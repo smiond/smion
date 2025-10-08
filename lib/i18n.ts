@@ -19,6 +19,10 @@ i18n
       loadPath: '/locales/{{lng}}/{{ns}}.json',
     },
     
+    // Normalize language codes to match our folder structure
+    load: 'languageOnly',
+    cleanCode: true,
+    
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],

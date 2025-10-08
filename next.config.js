@@ -1,11 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove deprecated appDir option
-  output: 'export',
-  trailingSlash: true,
+  reactStrictMode: true,
   images: {
-    unoptimized: true
-  }
+    // Keep unoptimized to avoid requiring next/image optimization on Vercel plan
+    unoptimized: true,
+  },
 }
 
 module.exports = nextConfig

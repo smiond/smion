@@ -98,8 +98,8 @@ function detectLanguage(message: string): string {
 
 // Ollama Cloud API function using Ollama client with fail-fast timeout
 async function callOllamaCloud(prompt: string, language: string, timeoutMs: number = 40000) {
-  const ollamaUrl = process.env.OLLAMA_URL || 'https://ollama.com'
-  const model = process.env.OLLAMA_MODEL || 'qwen3-coder:480b-cloud'
+  const ollamaUrl = process.env.OLLAMA_URL || 'https://api.ollama.ai'
+  const model = process.env.OLLAMA_MODEL || 'llama3.1'
   
   const ollama = new Ollama({
     host: ollamaUrl,
@@ -135,6 +135,25 @@ async function callOllamaCloud(prompt: string, language: string, timeoutMs: numb
 
   const response = await Promise.race([chatPromise, timeoutPromise]) as any
   return response?.message?.content || "I'm sorry, I couldn't generate a response."
+}
+
+// Quick Ollama Cloud healthcheck - verifies URL/key/model accessibility fast
+async function ollamaHealthcheck(timeoutMs: number = 8000): Promise<{ ok: boolean; reason?: string }> {
+  try {
+    const controller = new AbortController()
+    const id = setTimeout(() => controller.abort(), timeoutMs)
+    const url = (process.env.OLLAMA_URL || 'https://api.ollama.ai').replace(/\/$/, '') + '/api/tags'
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${ollamaApiKey}` },
+      signal: controller.signal,
+    })
+    clearTimeout(id)
+    if (!res.ok) return { ok: false, reason: `status ${res.status}` }
+    return { ok: true }
+  } catch (e: any) {
+    return { ok: false, reason: e?.message || 'fetch_failed' }
+  }
 }
 
 // CV data for RAG system - Updated with Smion's real information
@@ -481,6 +500,19 @@ ${cvData.certifications.map(cert => `
     
     // Try providers in order: Ollama Cloud -> Google Gemini -> OpenAI
     if (ollamaApiKey) {
+      // quick healthcheck to avoid hanging on misconfig
+      const hc = await ollamaHealthcheck(8000)
+      if (!hc.ok) {
+        console.error('Ollama healthcheck failed:', hc.reason)
+        return NextResponse.json({
+          response: detectedLanguage === 'hr'
+            ? 'AI servis trenutno nije dostupan (Ollama Cloud). Provjerite postavke i pokušajte kasnije.'
+            : detectedLanguage === 'de'
+            ? 'Der KI-Dienst ist derzeit nicht verfügbar (Ollama Cloud). Bitte später erneut versuchen.'
+            : 'AI service is not available right now (Ollama Cloud). Please try again later.',
+          sessionId: currentSessionId,
+        })
+      }
       // Ollama Cloud as primary option
       try {
         response = await callOllamaCloud(`Context about Smion Đurđević:\n${context}\n\nQuestion: ${message}`, detectedLanguage)

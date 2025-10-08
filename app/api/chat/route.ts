@@ -96,8 +96,8 @@ function detectLanguage(message: string): string {
   }
 }
 
-// Ollama Cloud API function using Ollama client
-async function callOllamaCloud(prompt: string, language: string) {
+// Ollama Cloud API function using Ollama client with fail-fast timeout
+async function callOllamaCloud(prompt: string, language: string, timeoutMs: number = 12000) {
   const ollamaUrl = process.env.OLLAMA_URL || 'https://ollama.com'
   const model = process.env.OLLAMA_MODEL || 'deepseek-v3.1:671b-cloud'
   
@@ -108,7 +108,7 @@ async function callOllamaCloud(prompt: string, language: string) {
     }
   })
 
-  const response = await ollama.chat({
+  const chatPromise = ollama.chat({
     model: model,
     messages: [
       {
@@ -126,7 +126,15 @@ async function callOllamaCloud(prompt: string, language: string) {
     }
   })
 
-  return response.message?.content || "I'm sorry, I couldn't generate a response."
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    const id = setTimeout(() => {
+      clearTimeout(id)
+      reject(new Error('OLLAMA_TIMEOUT'))
+    }, timeoutMs)
+  })
+
+  const response = await Promise.race([chatPromise, timeoutPromise]) as any
+  return response?.message?.content || "I'm sorry, I couldn't generate a response."
 }
 
 // CV data for RAG system - Updated with Smion's real information
@@ -478,6 +486,17 @@ ${cvData.certifications.map(cert => `
         response = await callOllamaCloud(`Context about Smion Đurđević:\n${context}\n\nQuestion: ${message}`, detectedLanguage)
       } catch (ollamaErr) {
         console.error('Ollama failed:', ollamaErr)
+        // If Ollama timed out, return a friendly message quickly
+        if ((ollamaErr as Error)?.message === 'OLLAMA_TIMEOUT') {
+          return NextResponse.json({
+            response: detectedLanguage === 'hr'
+              ? 'Trenutno je sporo spajanje na AI servis. Pokušajte ponovno za par sekundi.'
+              : detectedLanguage === 'de'
+              ? 'Die Verbindung zum KI-Dienst ist momentan langsam. Bitte versuchen Sie es in ein paar Sekunden erneut.'
+              : 'AI service is responding slowly right now. Please try again in a few seconds.',
+            sessionId: currentSessionId,
+          })
+        }
         // Try Google Gemini as fallback
         if (googleApiKey) {
           try {

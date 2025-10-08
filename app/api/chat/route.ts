@@ -134,17 +134,32 @@ async function callOllamaCloud(prompt: string, language: string, timeoutMs: numb
 // Quick Ollama Cloud healthcheck - verifies URL/key/model accessibility fast
 async function ollamaHealthcheck(timeoutMs: number = 8000): Promise<{ ok: boolean; reason?: string }> {
   try {
+    const ollamaCloudClient = new OpenAI({
+      baseURL: process.env.OLLAMA_URL || 'https://api.ollama.ai/v1',
+      apiKey: ollamaApiKey,
+    })
+
     const controller = new AbortController()
     const id = setTimeout(() => controller.abort(), timeoutMs)
-    const url = (process.env.OLLAMA_URL || 'https://api.ollama.ai').replace(/\/$/, '') + '/api/tags'
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${ollamaApiKey}` },
-      signal: controller.signal,
-    })
+    
+    // Try a simple chat completion to verify API works
+    const testResponse = await Promise.race([
+      ollamaCloudClient.chat.completions.create({
+        model: 'llama3.1',
+        messages: [{ role: 'user', content: 'hello' }],
+        temperature: 0.1,
+        max_tokens: 5,
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Ollama healthcheck timed out')), timeoutMs))
+    ]) as OpenAI.Chat.Completions.ChatCompletion
+
     clearTimeout(id)
-    if (!res.ok) return { ok: false, reason: `status ${res.status}` }
-    return { ok: true }
+    
+    if (testResponse.choices && testResponse.choices.length > 0) {
+      return { ok: true }
+    } else {
+      return { ok: false, reason: 'No response choices returned' }
+    }
   } catch (e: any) {
     return { ok: false, reason: e?.message || 'fetch_failed' }
   }

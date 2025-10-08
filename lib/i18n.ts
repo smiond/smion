@@ -12,6 +12,8 @@ i18n
     debug: false,
     supportedLngs: ['en', 'hr', 'de'],
     nonExplicitSupportedLngs: true,
+    ns: ['common'],
+    defaultNS: 'common',
     
     interpolation: {
       escapeValue: false,
@@ -28,6 +30,10 @@ i18n
     detection: {
       order: ['navigator', 'htmlTag'],
       caches: [],
+    },
+
+    react: {
+      useSuspense: true,
     },
   })
 

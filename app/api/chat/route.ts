@@ -7,7 +7,7 @@ import { Ollama } from 'ollama'
 import { saveChatMessage } from '@/lib/database'
 
 // Resolve provider keys: prefer Ollama Cloud as primary provider
-const ollamaApiKey = process.env.OLLAMA_API_KEY || 'f8fefb26fa9a41889ec6ccdd03a51357.NkI_eL-UzP3U-bxKhsOMKS-G'
+const ollamaApiKey = process.env.OLLAMA_API_KEY || ''
 const googleApiKey = process.env.GOOGLE_API_KEY || ''
 const resolvedApiKey = process.env.SMION_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''
 
@@ -98,8 +98,8 @@ function detectLanguage(message: string): string {
 
 // Ollama Cloud API function using Ollama client with fail-fast timeout
 async function callOllamaCloud(prompt: string, language: string, timeoutMs: number = 40000) {
-  const baseURL = 'https://api.ollama.ai/v1' // Use correct Ollama Cloud endpoint
-  const model = 'llama3.1' // Use available model
+  const baseURL = 'https://ollama.com/v1' // Try ollama.com instead of api.ollama.ai
+  const model = 'llama3:8b' // Use correct model format from Ollama Cloud docs
 
   const client = new OpenAI({
     apiKey: ollamaApiKey,
@@ -135,7 +135,7 @@ async function callOllamaCloud(prompt: string, language: string, timeoutMs: numb
 async function ollamaHealthcheck(timeoutMs: number = 8000): Promise<{ ok: boolean; reason?: string }> {
   try {
     const ollamaCloudClient = new OpenAI({
-      baseURL: 'https://api.ollama.ai/v1', // Use correct Ollama Cloud endpoint
+      baseURL: 'https://ollama.com/v1', // Try ollama.com instead of api.ollama.ai
       apiKey: ollamaApiKey,
     })
 
@@ -145,7 +145,7 @@ async function ollamaHealthcheck(timeoutMs: number = 8000): Promise<{ ok: boolea
     // Try a simple chat completion to verify API works
     const testResponse = await Promise.race([
       ollamaCloudClient.chat.completions.create({
-        model: 'llama3.1',
+        model: 'llama3:8b',
         messages: [{ role: 'user', content: 'hello' }],
         temperature: 0.1,
         max_tokens: 5,

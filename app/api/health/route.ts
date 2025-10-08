@@ -6,8 +6,8 @@ export const runtime = 'nodejs'
 
 async function checkOllama(timeoutMs: number = 8000) {
   const ollamaKey = process.env.OLLAMA_API_KEY
-  const ollamaUrl = 'https://api.ollama.ai' // Use correct Ollama Cloud endpoint
-  const model = 'llama3.1' // Use same model as chat endpoint
+  const ollamaUrl = 'https://ollama.com' // Try ollama.com instead of api.ollama.ai
+  const model = 'llama3:8b' // Use correct model format from Ollama Cloud docs
 
   if (!ollamaKey) {
     return { ok: false, reason: 'missing_key', url: ollamaUrl, model }

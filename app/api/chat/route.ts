@@ -13,7 +13,7 @@ const resolvedApiKey = process.env.SMION_OPENAI_API_KEY || process.env.OPENAI_AP
 
 // Tuning defaults (can be overridden via env)
 const DEFAULT_TEMPERATURE = Number.parseFloat(process.env.AI_TEMPERATURE || '0.7')
-const MAX_OUTPUT_TOKENS = Number.parseInt(process.env.AI_MAX_OUTPUT_TOKENS || '512', 10)
+const MAX_OUTPUT_TOKENS = Number.parseInt(process.env.AI_MAX_OUTPUT_TOKENS || '256', 10)
 if (process.env.NODE_ENV !== 'production') {
   const smion = process.env.SMION_OPENAI_API_KEY
   const openaiEnv = process.env.OPENAI_API_KEY
@@ -153,6 +153,33 @@ async function ollamaHealthcheck(timeoutMs: number = 8000): Promise<{ ok: boolea
     return { ok: true }
   } catch (e: any) {
     return { ok: false, reason: e?.message || 'fetch_failed' }
+  }
+}
+
+// Quick chat probe to ensure chat endpoint responds
+async function ollamaChatProbe(timeoutMs: number = 6000): Promise<boolean> {
+  try {
+    const ollamaUrl = process.env.OLLAMA_URL || 'https://api.ollama.ai'
+    const model = process.env.OLLAMA_MODEL || 'llama3.1'
+    const controller = new AbortController()
+    const id = setTimeout(() => controller.abort(), timeoutMs)
+    const res = await fetch(`${ollamaUrl.replace(/\/$/, '')}/api/chat`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${ollamaApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: 'ping' }],
+        options: { temperature: 0, num_predict: 32 }
+      }),
+      signal: controller.signal,
+    })
+    clearTimeout(id)
+    return res.ok
+  } catch {
+    return false
   }
 }
 
@@ -502,7 +529,7 @@ ${cvData.certifications.map(cert => `
     if (ollamaApiKey) {
       // quick healthcheck to avoid hanging on misconfig
       const hc = await ollamaHealthcheck(8000)
-      if (!hc.ok) {
+      if (!hc.ok || !(await ollamaChatProbe(6000))) {
         console.error('Ollama healthcheck failed:', hc.reason)
         return NextResponse.json({
           response: detectedLanguage === 'hr'

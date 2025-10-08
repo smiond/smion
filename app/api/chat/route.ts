@@ -98,8 +98,8 @@ function detectLanguage(message: string): string {
 
 // Ollama Cloud API function using Ollama client with fail-fast timeout
 async function callOllamaCloud(prompt: string, language: string, timeoutMs: number = 40000) {
-  const baseURL = (process.env.OLLAMA_URL || 'https://api.ollama.ai').replace(/\/$/, '') + '/v1'
-  const model = 'llama3.1' // Force use of available model
+  const baseURL = 'https://api.ollama.ai/v1' // Use correct Ollama Cloud endpoint
+  const model = 'llama3.1' // Use available model
 
   const client = new OpenAI({
     apiKey: ollamaApiKey,
@@ -135,7 +135,7 @@ async function callOllamaCloud(prompt: string, language: string, timeoutMs: numb
 async function ollamaHealthcheck(timeoutMs: number = 8000): Promise<{ ok: boolean; reason?: string }> {
   try {
     const ollamaCloudClient = new OpenAI({
-      baseURL: process.env.OLLAMA_URL || 'https://api.ollama.ai/v1',
+      baseURL: 'https://api.ollama.ai/v1', // Use correct Ollama Cloud endpoint
       apiKey: ollamaApiKey,
     })
 

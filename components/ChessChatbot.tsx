@@ -71,6 +71,9 @@ export function ChessChatbot({ questionCount, maxQuestionsPerMove, onQuestionAsk
     setIsLoading(true)
 
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 20000) // 20s timeout
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -78,10 +81,13 @@ export function ChessChatbot({ questionCount, maxQuestionsPerMove, onQuestionAsk
         },
         body: JSON.stringify({
           message: inputText,
-          language: 'en',
+          // let server auto-detect language
           sessionId: sessionId
         }),
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
 
       let data: any = { response: undefined, sessionId: undefined }
       try {
@@ -115,11 +121,13 @@ export function ChessChatbot({ questionCount, maxQuestionsPerMove, onQuestionAsk
 
       setMessages(prev => [...prev, botMessage])
       onQuestionAsked() // Notify parent component that a question was asked
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error)
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Sorry, there was an error processing your message. Please try again.',
+        text: error?.name === 'AbortError'
+          ? 'Request timed out. Please try again.'
+          : 'Sorry, there was an error processing your message. Please try again.',
         isUser: false,
         timestamp: new Date()
       }

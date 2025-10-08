@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Suspense } from 'react'
 import '@/lib/i18n' // shared i18n setup with normalized locales
 import i18next from 'i18next'
+import { I18nextProvider } from 'react-i18next'
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false)
@@ -34,12 +35,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="text-white text-xl">Loading translations...</div>
-      </div>
-    }>
-      {children}
-    </Suspense>
+    <I18nextProvider i18n={i18next}>
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+          <div className="text-white text-xl">Loading translations...</div>
+        </div>
+      }>
+        {children}
+      </Suspense>
+    </I18nextProvider>
   )
 }

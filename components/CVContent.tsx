@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { Suspense } from 'react'
 import { 
   User, 
   Mail, 
@@ -16,7 +17,7 @@ import {
   Download
 } from 'lucide-react'
 
-export function CVContent() {
+function CVContentInner() {
   const { t } = useTranslation()
 
   const containerVariants = {
@@ -45,8 +46,22 @@ export function CVContent() {
           className="text-center mb-16"
         >
           <motion.div variants={itemVariants} className="mb-8">
-            <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-              <User className="w-16 h-16 text-white" />
+            <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-white/20 shadow-lg">
+              <img 
+                src="/profile.jpg" 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to User icon if image not found
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.className = 'w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center';
+                    parent.innerHTML = '<svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>';
+                  }
+                }}
+              />
             </div>
             <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               {t('cv.name')}
@@ -176,6 +191,18 @@ export function CVContent() {
         </motion.div>
       </div>
     </div>
+  )
+}
+
+export function CVContent() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-white text-xl">Loading CV...</div>
+      </div>
+    }>
+      <CVContentInner />
+    </Suspense>
   )
 }
 

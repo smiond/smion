@@ -83,7 +83,23 @@ export function ChessChatbot({ questionCount, maxQuestionsPerMove, onQuestionAsk
         }),
       })
 
-      const data = await response.json()
+      let data: any = { response: undefined, sessionId: undefined }
+      try {
+        data = await response.json()
+      } catch (e) {
+        // ignore JSON parse error, will handle below
+      }
+
+      if (!response.ok) {
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: data?.response || 'Sorry, there was an error (server returned non-OK). Please try again shortly.',
+          isUser: false,
+          timestamp: new Date()
+        }
+        setMessages(prev => [...prev, botMessage])
+        return
+      }
 
       // Set sessionId from response if not already set
       if (!sessionId && data.sessionId) {

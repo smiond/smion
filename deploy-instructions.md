@@ -3,9 +3,15 @@
 ## 📋 Pre-deployment Checklist
 
 ### 1. Environment Variables
-Create `.env.production` file with:
+Create `.env.production` file with ONE provider (Gemini recommended) and base config:
 ```
+# Google Gemini (preferred)
+GOOGLE_API_KEY=your_google_gemini_api_key_here
+# or OpenAI
+SMION_OPENAI_API_KEY=your_openai_api_key_here
+# or
 OPENAI_API_KEY=your_openai_api_key_here
+
 NEXT_PUBLIC_APP_URL=https://yourdomain.com
 DATABASE_URL=./cv_database.db
 ```

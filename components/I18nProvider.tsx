@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { Suspense } from 'react'
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
@@ -12,7 +13,7 @@ i18n
   .use(initReactI18next)
   .init({
     fallbackLng: 'en',
-    debug: false, // Turn off debug to reduce console noise
+    debug: false,
     interpolation: {
       escapeValue: false,
     },
@@ -22,14 +23,42 @@ i18n
     ns: ['common'],
     defaultNS: 'common',
     react: {
-      useSuspense: false, // Disable suspense to prevent loading issues
+      useSuspense: true, // Enable suspense for proper hydration
     },
   })
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
+  const [isReady, setIsReady] = useState(false)
+
   useEffect(() => {
-    // You can add any i18n-related logic here if needed
+    const initI18n = async () => {
+      if (i18n.isInitialized) {
+        setIsReady(true)
+        return
+      }
+
+      await i18n.init()
+      setIsReady(true)
+    }
+
+    initI18n()
   }, [])
 
-  return <>{children}</>
+  if (!isReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    )
+  }
+
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-white text-xl">Loading translations...</div>
+      </div>
+    }>
+      {children}
+    </Suspense>
+  )
 }

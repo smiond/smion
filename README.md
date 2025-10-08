@@ -43,7 +43,14 @@ A stunning, animated CV portfolio website with multilingual support and AI-power
 3. **Set up environment variables**
    Create a `.env.local` file in the root directory:
    ```env
+   # AI Providers (choose one):
+   # 1) Google Gemini (recommended free tier)
+   GOOGLE_API_KEY=your_google_gemini_api_key_here
+   # 2) OpenAI (fallback)
+   SMION_OPENAI_API_KEY=your_openai_api_key_here
+   # or
    OPENAI_API_KEY=your_openai_api_key_here
+
    NEXT_PUBLIC_APP_URL=http://localhost:3000
    DATABASE_URL=./cv_database.db
    ```

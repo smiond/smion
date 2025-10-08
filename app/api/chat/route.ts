@@ -98,8 +98,8 @@ function detectLanguage(message: string): string {
 
 // Ollama Cloud API function using Ollama client with fail-fast timeout
 async function callOllamaCloud(prompt: string, language: string, timeoutMs: number = 40000) {
-  const ollamaUrl = process.env.OLLAMA_URL || 'https://api.ollama.ai'
-  const model = process.env.OLLAMA_MODEL || 'llama3.1:8b-instruct-fp16'
+  const ollamaUrl = process.env.OLLAMA_URL || 'https://ollama.com'
+  const model = process.env.OLLAMA_MODEL || 'qwen3-coder:480b-cloud'
   
   const ollama = new Ollama({
     host: ollamaUrl,

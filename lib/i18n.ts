@@ -10,6 +10,8 @@ i18n
   .init({
     fallbackLng: 'en',
     debug: false,
+    supportedLngs: ['en', 'hr', 'de'],
+    nonExplicitSupportedLngs: true,
     
     interpolation: {
       escapeValue: false,
@@ -24,8 +26,8 @@ i18n
     cleanCode: true,
     
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      caches: ['localStorage'],
+      order: ['navigator', 'htmlTag'],
+      caches: [],
     },
   })
 

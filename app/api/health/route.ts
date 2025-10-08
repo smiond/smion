@@ -22,37 +22,45 @@ async function checkOllama(timeoutMs: number = 8000) {
     const controller = new AbortController()
     const id = setTimeout(() => controller.abort(), timeoutMs)
     
-    // Try to list models to verify API key and URL
-    const tagsResponse = await Promise.race([
-      ollamaClient.models.list(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Ollama models API timed out')), timeoutMs))
-    ]) as OpenAI.Models.ModelsPage
+    // Try a simple chat completion to verify API works
+    const testResponse = await Promise.race([
+      ollamaClient.chat.completions.create({
+        model: model,
+        messages: [{ role: 'user', content: 'hello' }],
+        temperature: 0.1,
+        max_tokens: 5,
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Ollama chat test timed out')), timeoutMs))
+    ]) as OpenAI.Chat.Completions.ChatCompletion
 
     clearTimeout(id)
     
-    const availableModels = tagsResponse.data.map(m => m.id)
-    const isDefaultModelAvailable = availableModels.includes(model)
-
-    if (!isDefaultModelAvailable) {
+    if (testResponse.choices && testResponse.choices.length > 0) {
       return { 
-        ok: false, 
-        reason: `Default model '${model}' not found. Available models: ${availableModels.join(', ')}`, 
+        ok: true, 
+        status: 200, 
+        message: 'Ollama Cloud is configured and accessible.',
         url: ollamaUrl, 
         model,
-        availableModels 
+        testResponse: testResponse.choices[0]?.message?.content || 'no content'
+      }
+    } else {
+      return { 
+        ok: false, 
+        reason: 'No response choices returned', 
+        url: ollamaUrl, 
+        model 
       }
     }
-
+  } catch (e: any) {
+    console.error('Ollama health check error:', e)
     return { 
-      ok: true, 
-      status: 200, 
-      message: 'Ollama Cloud is configured and accessible.',
+      ok: false, 
+      reason: e?.message || 'fetch_failed', 
       url: ollamaUrl, 
       model,
-      availableModels 
+      error: e?.toString() || 'unknown error'
     }
-  } catch (e: any) {
-    return { ok: false, reason: e?.message || 'fetch_failed', url: ollamaUrl, model }
   }
 }
 

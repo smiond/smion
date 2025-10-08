@@ -73,7 +73,7 @@ export function ChessChatbot({ questionCount, maxQuestionsPerMove, onQuestionAsk
     const controller = new AbortController()
     const timeoutId = setTimeout(() => {
       controller.abort()
-    }, 20000) // 20s timeout
+    }, 30000) // 30s timeout
 
     try {
 

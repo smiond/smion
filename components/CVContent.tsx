@@ -92,10 +92,10 @@ function CVContentInner() {
 
           {/* Download CV Button */}
           <motion.div variants={itemVariants}>
-            <button className="btn-primary flex items-center space-x-2 mx-auto">
+            <a href="/cv/smion-cv.pdf" download className="btn-primary flex items-center space-x-2 mx-auto">
               <Download className="w-5 h-5" />
               <span>{t('cv.download')}</span>
-            </button>
+            </a>
           </motion.div>
         </motion.div>
 

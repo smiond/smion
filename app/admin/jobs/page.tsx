@@ -1,0 +1,70 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+
+interface JobOffer {
+  id: number
+  file_name: string
+  file_size: number
+  file_type: string
+  uploaded_at: string
+}
+
+export default function JobsAdminPage() {
+  const [offers, setOffers] = useState<JobOffer[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/upload-cv?action=list')
+        const data = await res.json()
+        setOffers(data.offers || [])
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [])
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-6">
+      <div className="container mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-4xl font-bold mb-2">Job Offers</h1>
+          <p className="text-gray-300">Uploaded job offer PDFs (metadata)</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-6"
+        >
+          {loading ? (
+            <div>Loading...</div>
+          ) : offers.length === 0 ? (
+            <div className="text-gray-300">No job offers uploaded.</div>
+          ) : (
+            <div className="space-y-3 max-h-[70vh] overflow-y-auto">
+              {offers.map((o) => (
+                <div key={o.id} className="p-3 rounded-lg bg-white/5 border border-white/10 flex justify-between items-center">
+                  <div>
+                    <p className="text-sm font-medium">{o.file_name}</p>
+                    <p className="text-xs text-gray-400">{o.file_type} • {(o.file_size / 1024).toFixed(1)} KB</p>
+                  </div>
+                  <span className="text-xs text-gray-500">{new Date(o.uploaded_at).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </div>
+    </main>
+  )
+}
+
+

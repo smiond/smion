@@ -24,9 +24,11 @@ export default function ChatAdminPage() {
   const [selectedSession, setSelectedSession] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(true)
+  const [jobOffers, setJobOffers] = useState<any[]>([])
 
   useEffect(() => {
     fetchSessions()
+    fetchJobOffers()
   }, [])
 
   const fetchSessions = async () => {
@@ -49,6 +51,16 @@ export default function ChatAdminPage() {
       setSelectedSession(sessionId)
     } catch (error) {
       console.error('Error fetching messages:', error)
+    }
+  }
+
+  const fetchJobOffers = async () => {
+    try {
+      const res = await fetch('/api/upload-cv?action=list')
+      const data = await res.json()
+      setJobOffers(data.offers || [])
+    } catch (e) {
+      console.error('Error fetching job offers', e)
     }
   }
 
@@ -195,6 +207,33 @@ export default function ChatAdminPage() {
               </div>
             )}
           </motion.div>
+
+        {/* Job Offers */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-6 mt-6"
+        >
+          <h2 className="text-2xl font-semibold mb-4">Job Offers ({jobOffers.length})</h2>
+          {jobOffers.length === 0 ? (
+            <p className="text-gray-300">No job offers uploaded.</p>
+          ) : (
+            <div className="space-y-3 max-h-80 overflow-y-auto">
+              {jobOffers.map((o) => (
+                <div key={o.id} className="p-3 rounded-lg bg-white/5 border border-white/10">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-medium">{o.file_name}</p>
+                      <p className="text-xs text-gray-400">{o.file_type} • {(o.file_size / 1024).toFixed(1)} KB</p>
+                    </div>
+                    <span className="text-xs text-gray-500">{new Date(o.uploaded_at).toLocaleString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
         </div>
       </div>
     </main>

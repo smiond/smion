@@ -38,6 +38,16 @@ export function getAllChatSessions() {
   return getAllChatSessionsLocal()
 }
 
+export function saveJobOffer(fileName: string, fileSize: number, fileType: string) {
+  if (isServerless) return Promise.resolve({} as any)
+  return saveJobOfferLocal(fileName, fileSize, fileType)
+}
+
+export function getJobOffers() {
+  if (isServerless) return Promise.resolve([])
+  return getJobOffersLocal()
+}
+
 export function getChatSessionMessages(sessionId: string) {
   if (isServerless) return Promise.resolve([])
   return getChatSessionMessagesLocal(sessionId)
@@ -78,8 +88,19 @@ function initDatabaseLocal() {
         )
       `, (err: any) => {
         if (err) { reject(err); return }
-        console.log('Database initialized successfully')
-        resolve()
+        db.exec(`
+          CREATE TABLE IF NOT EXISTS job_offers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_name TEXT NOT NULL,
+            file_size INTEGER NOT NULL,
+            file_type TEXT NOT NULL,
+            uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          )
+        `, (err: any) => {
+          if (err) { reject(err); return }
+          console.log('Database initialized successfully')
+          resolve()
+        })
       })
     })
   })
@@ -161,6 +182,31 @@ function getAllChatSessionsLocal() {
       FROM chat_history 
       GROUP BY session_id 
       ORDER BY last_message DESC
+    `)
+    stmt.all((err: any, rows: any[]) => {
+      if (err) reject(err); else resolve(rows || [])
+    })
+  })
+}
+
+function saveJobOfferLocal(fileName: string, fileSize: number, fileType: string) {
+  return new Promise<import('sqlite3').RunResult>((resolve, reject) => {
+    const stmt = db.prepare(`
+      INSERT INTO job_offers (file_name, file_size, file_type)
+      VALUES (?, ?, ?)
+    `)
+    stmt.run(fileName, fileSize, fileType, function(this: import('sqlite3').RunResult, err: any) {
+      if (err) reject(err); else resolve(this)
+    })
+  })
+}
+
+function getJobOffersLocal() {
+  return new Promise<any[]>((resolve, reject) => {
+    const stmt = db.prepare(`
+      SELECT id, file_name, file_size, file_type, uploaded_at
+      FROM job_offers
+      ORDER BY uploaded_at DESC
     `)
     stmt.all((err: any, rows: any[]) => {
       if (err) reject(err); else resolve(rows || [])

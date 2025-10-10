@@ -22,7 +22,7 @@ export function CVUploader() {
 
     try {
       const formData = new FormData()
-      formData.append('cv', file)
+      formData.append('job', file)
 
       console.log('Uploading file:', file.name, file.size, 'bytes')
 
@@ -36,7 +36,7 @@ export function CVUploader() {
 
       if (response.ok && result.success) {
         setUploadStatus('success')
-        console.log('CV uploaded successfully:', result.data)
+        console.log('Job offer uploaded successfully:', result.data)
       } else {
         console.error('Upload failed:', result.error)
         setUploadStatus('error')
@@ -117,8 +117,8 @@ export function CVUploader() {
         ) : uploadStatus === 'success' ? (
           <div className="flex flex-col items-center space-y-4">
             <CheckCircle className="w-12 h-12 text-green-400" />
-            <p className="text-green-400 font-medium">CV uploaded successfully!</p>
-            <p className="text-sm text-gray-400">Your CV has been processed and is ready for the AI assistant.</p>
+            <p className="text-green-400 font-medium">Job offer uploaded successfully!</p>
+            <p className="text-sm text-gray-400">Your offer metadata has been stored.</p>
           </div>
         ) : uploadStatus === 'error' ? (
           <div className="flex flex-col items-center space-y-4">
@@ -130,7 +130,7 @@ export function CVUploader() {
           <div className="flex flex-col items-center space-y-4">
             <Upload className="w-12 h-12 text-gray-400" />
             <div>
-              <p className="text-lg font-medium mb-2">Drop your CV here or click to browse</p>
+              <p className="text-lg font-medium mb-2">Drop your job offer (PDF) here or click to browse</p>
               <p className="text-sm text-gray-400">Only PDF files are supported</p>
             </div>
           </div>
@@ -138,9 +138,8 @@ export function CVUploader() {
       </div>
 
       <div className="mt-4 text-xs text-gray-500">
-        <p>• Your CV will be processed to enhance the AI assistant's responses</p>
-        <p>• Only PDF format is supported</p>
-        <p>• Your data is stored securely and privately</p>
+        <p>• Upload job offers in PDF format</p>
+        <p>• We store only metadata (filename, size, type) locally</p>
       </div>
     </motion.div>
   )

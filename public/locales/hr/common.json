@@ -2,6 +2,8 @@
   "cv": {
     "name": "Smion Đurđević",
     "title": "Engineering Manager",
+    "subtitle": "Profesionalni profil i iskustvo",
+    "back_to_chess": "Povratak na šahovsku igru",
     "summary": "Iskusan Engineering Manager i Tech Lead s više od 20 godina iskustva u razvoju softvera, specijaliziran za .NET, C#, SQL i vođenje timova. Trenutno vodim više razvojnih timova i implementiram AI tehnologije kroz proizvode.",
     "email": "smionaz@gmail.com",
     "phone": "+385 91 614 39 89",

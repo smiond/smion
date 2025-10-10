@@ -14,8 +14,13 @@ interface Message {
 }
 
 export function Chatbot() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { setShowChatbot } = useAppContext()
+  
+  // Get current language from i18n
+  const getCurrentLanguage = () => {
+    return i18n.language || 'hr'
+  }
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -27,6 +32,7 @@ export function Chatbot() {
   const [inputText, setInputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [currentLanguage, setCurrentLanguage] = useState('hr')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -36,6 +42,20 @@ export function Chatbot() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Update current language when i18n language changes
+  useEffect(() => {
+    const lang = i18n.language || 'hr'
+    console.log('Language changed to:', lang, 'i18n.language:', i18n.language)
+    setCurrentLanguage(lang)
+  }, [i18n.language])
+
+  // Also update on component mount
+  useEffect(() => {
+    const lang = i18n.language || 'hr'
+    console.log('Initial language:', lang, 'i18n.language:', i18n.language)
+    setCurrentLanguage(lang)
+  }, [])
 
   const sendMessage = async () => {
     if (!inputText.trim() || isLoading) return
@@ -52,6 +72,9 @@ export function Chatbot() {
     setIsLoading(true)
 
     try {
+      const lang = getCurrentLanguage()
+      console.log('Sending language:', lang, 'i18n.language:', i18n.language, 'currentLanguage state:', currentLanguage)
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -59,7 +82,7 @@ export function Chatbot() {
         },
         body: JSON.stringify({
           message: inputText,
-          language: 'en', // You can get this from i18n
+          language: lang, // Get current language directly from i18n
           sessionId: sessionId
         })
       })

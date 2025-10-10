@@ -13,7 +13,7 @@ const resolvedApiKey = process.env.SMION_OPENAI_API_KEY || process.env.OPENAI_AP
 
 // Tuning defaults (can be overridden via env)
 const DEFAULT_TEMPERATURE = Number.parseFloat(process.env.AI_TEMPERATURE || '0.7')
-const MAX_OUTPUT_TOKENS = Number.parseInt(process.env.AI_MAX_OUTPUT_TOKENS || '256', 10)
+const MAX_OUTPUT_TOKENS = Number.parseInt(process.env.AI_MAX_OUTPUT_TOKENS || '100', 10)
 if (process.env.NODE_ENV !== 'production') {
   const smion = process.env.SMION_OPENAI_API_KEY
   const openaiEnv = process.env.OPENAI_API_KEY
@@ -98,12 +98,12 @@ function detectLanguage(message: string): string {
 
 // Ollama Cloud API function using Ollama client with fail-fast timeout
 async function callOllamaCloud(prompt: string, language: string, timeoutMs: number = 40000) {
-  const baseURL = 'https://ollama.com/v1' // Try ollama.com instead of api.ollama.ai
-  const model = 'llama3:8b' // Use correct model format from Ollama Cloud docs
+  const baseURL = process.env.OLLAMA_URL || 'https://ollama.com'
+  const model = process.env.OLLAMA_MODEL || 'glm-4.6'
 
   const client = new OpenAI({
     apiKey: ollamaApiKey,
-    baseURL,
+    baseURL: `${baseURL}/v1`,
   })
 
   const controller = new AbortController()
@@ -114,7 +114,11 @@ async function callOllamaCloud(prompt: string, language: string, timeoutMs: numb
       messages: [
         {
           role: 'system',
-          content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. Keep responses concise and relevant. Respond in ${language === 'hr' ? 'Croatian' : language === 'de' ? 'German' : 'English'}.`
+          content: `Answer questions about Smion Đurđević's CV. Use the provided context. If information is not available, say "Nemam te informacije."
+
+CRITICAL: Give ONLY the direct answer. No explanations, no thinking process, no analysis. Maximum 1-2 sentences.
+
+Respond in ${language === 'hr' ? 'Croatian' : language === 'de' ? 'German' : 'English'}.`
         },
         { role: 'user', content: prompt }
       ],
@@ -134,8 +138,11 @@ async function callOllamaCloud(prompt: string, language: string, timeoutMs: numb
 // Quick Ollama Cloud healthcheck - verifies URL/key/model accessibility fast
 async function ollamaHealthcheck(timeoutMs: number = 8000): Promise<{ ok: boolean; reason?: string }> {
   try {
+    const baseURL = process.env.OLLAMA_URL || 'https://ollama.com'
+    const model = process.env.OLLAMA_MODEL || 'glm-4.6'
+    
     const ollamaCloudClient = new OpenAI({
-      baseURL: 'https://ollama.com/v1', // Try ollama.com instead of api.ollama.ai
+      baseURL: `${baseURL}/v1`,
       apiKey: ollamaApiKey,
     })
 
@@ -145,7 +152,7 @@ async function ollamaHealthcheck(timeoutMs: number = 8000): Promise<{ ok: boolea
     // Try a simple chat completion to verify API works
     const testResponse = await Promise.race([
       ollamaCloudClient.chat.completions.create({
-        model: 'llama3:8b',
+        model,
         messages: [{ role: 'user', content: 'hello' }],
         temperature: 0.1,
         max_tokens: 5,
@@ -168,11 +175,11 @@ async function ollamaHealthcheck(timeoutMs: number = 8000): Promise<{ ok: boolea
 // Quick chat probe to ensure chat endpoint responds
 async function ollamaChatProbe(timeoutMs: number = 6000): Promise<boolean> {
   try {
-    const ollamaUrl = process.env.OLLAMA_URL || 'https://api.ollama.ai'
-    const model = 'llama3.1' // Force use of available model
+    const baseURL = process.env.OLLAMA_URL || 'https://ollama.com'
+    const model = process.env.OLLAMA_MODEL || 'glm-4.6'
     const controller = new AbortController()
     const id = setTimeout(() => controller.abort(), timeoutMs)
-    const res = await fetch(`${ollamaUrl.replace(/\/$/, '')}/api/chat`, {
+    const res = await fetch(`${baseURL}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${ollamaApiKey}`,
@@ -181,7 +188,8 @@ async function ollamaChatProbe(timeoutMs: number = 6000): Promise<boolean> {
       body: JSON.stringify({
         model,
         messages: [{ role: 'user', content: 'ping' }],
-        options: { temperature: 0, num_predict: 32 }
+        temperature: 0,
+        max_tokens: 32
       }),
       signal: controller.signal,
     })
@@ -205,7 +213,9 @@ const cvData = {
     date_of_birth: "1972-09-01",
     summary: "Experienced Engineering Manager with expertise in team leadership, software development, and cloud technologies. Currently managing engineering teams at ASEE Solutions with a strong background in C# .NET, Azure, and agile methodologies.",
     background_note: "Grew up in Trešnjevka (Zagreb district); in free time builds various apps to overcome daily challenges.",
-    hobbies: "Motors and fast riding (responsibly) — until the boys in blue say hi."
+    hobbies: "Motors and fast riding (responsibly) — until the boys in blue say hi.",
+    family: "Married with two children - a daughter and a son.",
+    languages: "Speaks three languages: Croatian (native), English, and Italian."
   },
   experience: [
     {
@@ -368,9 +378,11 @@ export async function POST(request: NextRequest) {
     // Ensure at least one provider is configured
     if (!googleApiKey && !resolvedApiKey && !ollamaApiKey) {
       console.error('No AI API key is configured')
+      // Return a mock response for testing
       return NextResponse.json({ 
-        error: 'No AI provider configured. Set GOOGLE_API_KEY (Gemini), SMION_OPENAI_API_KEY / OPENAI_API_KEY (OpenAI), or OLLAMA_API_KEY (Ollama Cloud).' 
-      }, { status: 500 })
+        response: 'Pozdrav! Ja sam AI asistent koji odgovara na pitanja o Smion Đurđeviću. Trenutno sam u testnom modu jer nisu konfigurirani API ključevi. Molim vas postavite jedan od sljedećih: GOOGLE_API_KEY, OPENAI_API_KEY ili OLLAMA_API_KEY.',
+        sessionId: crypto.randomUUID()
+      })
     }
 
     const { message, language: requestedLanguage, sessionId } = await request.json()
@@ -379,11 +391,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 })
     }
 
-    // Always auto-detect language from message to ensure correct reply language
-    const detectedLanguage = detectLanguage(message)
+    // Use requested language from UI, fallback to auto-detection
+    const detectedLanguage = requestedLanguage || detectLanguage(message)
     
     // Debug logging for language detection
-    console.log(`[LanguageDetection] message="${message}" | detected="${detectedLanguage}" | requested="${requestedLanguage}"`)
+    console.log(`[LanguageDetection] message="${message}" | detected="${detectedLanguage}" | requested="${requestedLanguage}" | final="${detectedLanguage}"`)
 
     // Generate session ID if not provided
     const currentSessionId = sessionId || crypto.randomUUID()
@@ -499,8 +511,10 @@ Personal Information:
 - Birthplace: ${cvData.personal.birthplace}
 - Date of Birth: ${cvData.personal.date_of_birth}
 - Summary: ${cvData.personal.summary}
- - Personal: ${cvData.personal.background_note}
- - Hobbies: ${cvData.personal.hobbies}
+- Personal: ${cvData.personal.background_note}
+- Hobbies: ${cvData.personal.hobbies}
+- Family: ${cvData.personal.family}
+- Languages: ${cvData.personal.languages}
 
 Professional Experience:
 ${cvData.experience.map(exp => {
@@ -569,7 +583,7 @@ ${cvData.certifications.map(cert => `
         if (googleApiKey) {
           try {
             const genAI = new GoogleGenerativeAI(googleApiKey)
-            const prompt = `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. Keep responses concise and relevant. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English' }.
+            const prompt = `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. CRITICAL: Give ONLY the direct answer. No explanations, no thinking process, no analysis. Maximum 1-2 sentences. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English' }.
 
 Context:\n${context}\n\nQuestion: ${message}`
 
@@ -602,7 +616,7 @@ Context:\n${context}\n\nQuestion: ${message}`
                     messages: [
                       {
                         role: "system",
-                        content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. Keep responses concise and relevant. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English'}.`
+                        content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. CRITICAL: Give ONLY the direct answer. No explanations, no thinking process, no analysis. Maximum 1-2 sentences. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English'}.`
                       },
                       {
                         role: "user",
@@ -633,7 +647,7 @@ Context:\n${context}\n\nQuestion: ${message}`
               messages: [
                 {
                   role: "system",
-                  content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. Keep responses concise and relevant. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English'}.`
+                  content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. CRITICAL: Give ONLY the direct answer. No explanations, no thinking process, no analysis. Maximum 1-2 sentences. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English'}.`
                 },
                 {
                   role: "user",
@@ -655,7 +669,7 @@ Context:\n${context}\n\nQuestion: ${message}`
     } else if (googleApiKey) {
       // Google Gemini as fallback
       const genAI = new GoogleGenerativeAI(googleApiKey)
-      const prompt = `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. Keep responses concise and relevant. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English' }.
+      const prompt = `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. CRITICAL: Give ONLY the direct answer. No explanations, no thinking process, no analysis. Maximum 1-2 sentences. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English' }.
 
 Context:\n${context}\n\nQuestion: ${message}`
 
@@ -688,7 +702,7 @@ Context:\n${context}\n\nQuestion: ${message}`
               messages: [
                 {
                   role: "system",
-                  content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. Keep responses concise and relevant. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English'}.`
+                  content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. CRITICAL: Give ONLY the direct answer. No explanations, no thinking process, no analysis. Maximum 1-2 sentences. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English'}.`
                 },
                 {
                   role: "user",
@@ -715,7 +729,7 @@ Context:\n${context}\n\nQuestion: ${message}`
           messages: [
             {
               role: "system",
-              content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. Keep responses concise and relevant. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English'}.`
+              content: `You are a helpful assistant that answers questions about Smion Đurđević's CV and professional experience. Use the provided context to answer questions accurately and professionally. If asked about something not in the context, politely say you don't have that information. CRITICAL: Give ONLY the direct answer. No explanations, no thinking process, no analysis. Maximum 1-2 sentences. Respond in ${detectedLanguage === 'hr' ? 'Croatian' : detectedLanguage === 'de' ? 'German' : 'English'}.`
             },
             {
               role: "user", 

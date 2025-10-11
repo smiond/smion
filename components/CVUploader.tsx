@@ -47,7 +47,9 @@ export function CVUploader() {
         
         // Save to localStorage for persistence
         const arrayBuffer = await file.arrayBuffer()
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+        const uint8Array = new Uint8Array(arrayBuffer)
+        const binaryString = Array.from(uint8Array, byte => String.fromCharCode(byte)).join('')
+        const base64 = btoa(binaryString)
         
         const jobOffer = {
           id: Date.now().toString(),

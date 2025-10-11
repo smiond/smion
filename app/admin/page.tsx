@@ -37,8 +37,13 @@ export default function ChatAdminPage() {
     try {
       // First check localStorage for chat sessions
       const localSessions = localStorage.getItem('chatSessions')
+      console.log('LocalStorage chatSessions:', localSessions)
+      
       if (localSessions) {
         const parsedSessions = JSON.parse(localSessions)
+        console.log('Parsed sessions:', parsedSessions)
+        console.log('Sessions length:', parsedSessions.length)
+        
         if (parsedSessions.length > 0) {
           setSessions(parsedSessions)
           setLoading(false)
@@ -47,8 +52,10 @@ export default function ChatAdminPage() {
       }
       
       // Fallback to server data
+      console.log('No localStorage sessions found, trying server...')
       const response = await fetch('/api/chat-sessions?action=sessions')
       const data = await response.json()
+      console.log('Server response:', data)
       setSessions(data.sessions || [])
     } catch (error) {
       console.error('Error fetching sessions:', error)
@@ -61,8 +68,12 @@ export default function ChatAdminPage() {
     try {
       // First check localStorage for messages
       const localMessages = localStorage.getItem(`chatSession_${sessionId}`)
+      console.log(`LocalStorage messages for session ${sessionId}:`, localMessages)
+      
       if (localMessages) {
         const parsed = JSON.parse(localMessages)
+        console.log('Parsed messages data:', parsed)
+        
         const messages = parsed.messages.map((msg: any) => ({
           id: msg.id,
           session_id: sessionId,
@@ -71,14 +82,18 @@ export default function ChatAdminPage() {
           timestamp: msg.timestamp,
           language: msg.language || 'hr'
         }))
+        console.log('Mapped messages:', messages)
+        
         setMessages(messages)
         setSelectedSession(sessionId)
         return
       }
       
       // Fallback to server data
+      console.log('No localStorage messages found, trying server...')
       const response = await fetch(`/api/chat-sessions?sessionId=${sessionId}&action=messages`)
       const data = await response.json()
+      console.log('Server messages response:', data)
       setMessages(data.messages || [])
       setSelectedSession(sessionId)
     } catch (error) {
@@ -163,8 +178,21 @@ export default function ChatAdminPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl font-bold mb-4">Chat Sessions Admin</h1>
-          <p className="text-gray-300">Review and manage chat conversations</p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold mb-4">Chat Sessions Admin</h1>
+              <p className="text-gray-300">Review and manage chat conversations</p>
+            </div>
+            <button
+              onClick={() => {
+                setLoading(true)
+                fetchSessions()
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Refresh Sessions
+            </button>
+          </div>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

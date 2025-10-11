@@ -36,6 +36,8 @@ export function Chatbot() {
 
   // Save messages to localStorage
   const saveMessagesToStorage = (messages: Message[], sessionId: string) => {
+    console.log('Saving messages to storage:', { sessionId, messageCount: messages.length })
+    
     const chatData = {
       sessionId,
       messages: messages.map(msg => ({
@@ -48,6 +50,7 @@ export function Chatbot() {
       lastUpdated: new Date().toISOString()
     }
     localStorage.setItem(`chatSession_${sessionId}`, JSON.stringify(chatData))
+    console.log('Saved chat data:', chatData)
     
     // Also save session info
     const sessions = JSON.parse(localStorage.getItem('chatSessions') || '[]')
@@ -57,16 +60,19 @@ export function Chatbot() {
       existingSession.messageCount = messages.length
       existingSession.lastUpdated = new Date().toISOString()
     } else {
-      sessions.push({
+      const newSession = {
         sessionId,
         firstMessage: messages[0]?.text || '',
         lastMessage: messages[messages.length - 1]?.text || '',
         messageCount: messages.length,
         createdAt: new Date().toISOString(),
         lastUpdated: new Date().toISOString()
-      })
+      }
+      sessions.push(newSession)
+      console.log('Added new session:', newSession)
     }
     localStorage.setItem('chatSessions', JSON.stringify(sessions))
+    console.log('All sessions:', sessions)
   }
 
   // Load messages from localStorage
@@ -105,6 +111,22 @@ export function Chatbot() {
     const lang = i18n.language || 'hr'
     console.log('Initial language:', lang, 'i18n.language:', i18n.language)
     setCurrentLanguage(lang)
+    
+    // Create a session ID when chatbot opens and save initial message
+    const initialSessionId = crypto.randomUUID()
+    setSessionId(initialSessionId)
+    
+    // Save initial message to localStorage immediately
+    const initialMessages = [
+      {
+        id: '1',
+        text: t('chatbot.title'),
+        isUser: false,
+        timestamp: new Date()
+      }
+    ]
+    
+    saveMessagesToStorage(initialMessages, initialSessionId)
   }, [])
 
   const sendMessage = async () => {

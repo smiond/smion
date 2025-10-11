@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
 interface JobOffer {
-  id: number
-  file_name: string
-  file_size: number
-  file_type: string
-  uploaded_at: string
+  id: string
+  fileName: string
+  fileSize: number
+  fileType: string
+  uploadedAt: string
 }
 
 export default function JobsAdminPage() {
@@ -53,10 +53,10 @@ export default function JobsAdminPage() {
               {offers.map((o) => (
                 <div key={o.id} className="p-3 rounded-lg bg-white/5 border border-white/10 flex justify-between items-center">
                   <div>
-                    <p className="text-sm font-medium">{o.file_name}</p>
-                    <p className="text-xs text-gray-400">{o.file_type} • {(o.file_size / 1024).toFixed(1)} KB</p>
+                    <p className="text-sm font-medium">{o.fileName}</p>
+                    <p className="text-xs text-gray-400">{o.fileType} • {(o.fileSize / 1024).toFixed(1)} KB</p>
                   </div>
-                  <span className="text-xs text-gray-500">{new Date(o.uploaded_at).toLocaleString()}</span>
+                  <span className="text-xs text-gray-500">{new Date(o.uploadedAt).toLocaleString()}</span>
                 </div>
               ))}
             </div>

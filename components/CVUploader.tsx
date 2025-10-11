@@ -17,6 +17,13 @@ export function CVUploader() {
       return
     }
 
+    // Check file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
+      setUploadStatus('error')
+      return
+    }
+
     setIsUploading(true)
     setUploadStatus('idle')
 
@@ -124,7 +131,7 @@ export function CVUploader() {
           <div className="flex flex-col items-center space-y-4">
             <AlertCircle className="w-12 h-12 text-red-400" />
             <p className="text-red-400 font-medium">Upload failed</p>
-            <p className="text-sm text-gray-400">Please make sure you're uploading a valid PDF file.</p>
+            <p className="text-sm text-gray-400">Please make sure you're uploading a valid PDF file (max 5MB).</p>
           </div>
         ) : (
           <div className="flex flex-col items-center space-y-4">
@@ -138,8 +145,8 @@ export function CVUploader() {
       </div>
 
       <div className="mt-4 text-xs text-gray-500">
-        <p>• Upload job offers in PDF format</p>
-        <p>• We store only metadata (filename, size, type) locally</p>
+        <p>• Upload job offers in PDF format (max 5MB)</p>
+        <p>• We store only metadata (filename, size, type)</p>
       </div>
     </motion.div>
   )

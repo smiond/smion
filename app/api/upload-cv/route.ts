@@ -5,7 +5,9 @@ import path from 'path'
 export const runtime = 'nodejs'
 
 // Simple JSON file storage for job offers (works both locally and on Vercel)
-const JOBS_FILE = path.join(process.cwd(), 'data', 'job-offers.json')
+const JOBS_FILE = process.env.VERCEL 
+  ? path.join('/tmp', 'job-offers.json')
+  : path.join(process.cwd(), 'data', 'job-offers.json')
 
 interface JobOffer {
   id: string
@@ -25,9 +27,11 @@ async function saveJobOffer(fileName: string, fileSize: number, fileType: string
   }
 
   try {
-    // Ensure data directory exists
-    const dataDir = path.dirname(JOBS_FILE)
-    await fs.promises.mkdir(dataDir, { recursive: true })
+    // Ensure data directory exists (only for local development)
+    if (!process.env.VERCEL) {
+      const dataDir = path.dirname(JOBS_FILE)
+      await fs.promises.mkdir(dataDir, { recursive: true })
+    }
     
     // Read existing offers
     let offers: JobOffer[] = []
@@ -75,6 +79,15 @@ export async function POST(request: NextRequest) {
     if (file.type !== 'application/pdf') {
       console.log('Invalid file type:', file.type)
       return NextResponse.json({ error: 'Only PDF files are allowed' }, { status: 400 })
+    }
+    
+    // Check file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
+      console.log('File too large:', file.size, 'bytes')
+      return NextResponse.json({ 
+        error: `File too large. Maximum size is ${maxSize / (1024 * 1024)}MB` 
+      }, { status: 413 })
     }
     
     console.log('File received:', file.name, file.size, 'bytes')

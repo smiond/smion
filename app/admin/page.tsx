@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
 interface ChatSession {
-  session_id: string
-  first_message: string
-  last_message: string
-  message_count: number
+  sessionId: string
+  firstMessage: string
+  lastMessage: string
+  messageCount: number
+  createdAt: string
+  lastUpdated: string
 }
 
 interface ChatMessage {
@@ -33,6 +35,18 @@ export default function ChatAdminPage() {
 
   const fetchSessions = async () => {
     try {
+      // First check localStorage for chat sessions
+      const localSessions = localStorage.getItem('chatSessions')
+      if (localSessions) {
+        const parsedSessions = JSON.parse(localSessions)
+        if (parsedSessions.length > 0) {
+          setSessions(parsedSessions)
+          setLoading(false)
+          return
+        }
+      }
+      
+      // Fallback to server data
       const response = await fetch('/api/chat-sessions?action=sessions')
       const data = await response.json()
       setSessions(data.sessions || [])
@@ -45,6 +59,24 @@ export default function ChatAdminPage() {
 
   const fetchMessages = async (sessionId: string) => {
     try {
+      // First check localStorage for messages
+      const localMessages = localStorage.getItem(`chatSession_${sessionId}`)
+      if (localMessages) {
+        const parsed = JSON.parse(localMessages)
+        const messages = parsed.messages.map((msg: any) => ({
+          id: msg.id,
+          session_id: sessionId,
+          message: msg.text,
+          is_user: msg.isUser,
+          timestamp: msg.timestamp,
+          language: msg.language || 'hr'
+        }))
+        setMessages(messages)
+        setSelectedSession(sessionId)
+        return
+      }
+      
+      // Fallback to server data
       const response = await fetch(`/api/chat-sessions?sessionId=${sessionId}&action=messages`)
       const data = await response.json()
       setMessages(data.messages || [])
@@ -56,6 +88,17 @@ export default function ChatAdminPage() {
 
   const fetchJobOffers = async () => {
     try {
+      // First check localStorage for user's uploads
+      const localOffers = localStorage.getItem('jobOffers')
+      if (localOffers) {
+        const parsedOffers = JSON.parse(localOffers)
+        if (parsedOffers.length > 0) {
+          setJobOffers(parsedOffers)
+          return
+        }
+      }
+      
+      // Fallback to server data
       const res = await fetch('/api/upload-cv?action=list')
       const data = await res.json()
       setJobOffers(data.offers || [])
@@ -68,20 +111,32 @@ export default function ChatAdminPage() {
     if (!confirm('Are you sure you want to delete this chat session?')) return
 
     try {
-      const response = await fetch('/api/chat-sessions', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sessionId }),
-      })
-
-      if (response.ok) {
-        setSessions(sessions.filter(s => s.session_id !== sessionId))
-        if (selectedSession === sessionId) {
-          setSelectedSession(null)
-          setMessages([])
-        }
+      // Delete from localStorage
+      localStorage.removeItem(`chatSession_${sessionId}`)
+      
+      // Update sessions list
+      const sessions = JSON.parse(localStorage.getItem('chatSessions') || '[]')
+      const updatedSessions = sessions.filter((s: any) => s.sessionId !== sessionId)
+      localStorage.setItem('chatSessions', JSON.stringify(updatedSessions))
+      
+      // Update state
+      setSessions(updatedSessions)
+      if (selectedSession === sessionId) {
+        setSelectedSession(null)
+        setMessages([])
+      }
+      
+      // Also try to delete from server (fallback)
+      try {
+        await fetch('/api/chat-sessions', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ sessionId }),
+        })
+      } catch (serverError) {
+        console.log('Server deletion failed, but localStorage deletion succeeded')
       }
     } catch (error) {
       console.error('Error deleting session:', error)
@@ -128,30 +183,30 @@ export default function ChatAdminPage() {
               <div className="space-y-3">
                 {sessions.map((session) => (
                   <div
-                    key={session.session_id}
+                    key={session.sessionId}
                     className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                      selectedSession === session.session_id
+                      selectedSession === session.sessionId
                         ? 'bg-blue-500/20 border-blue-400'
                         : 'bg-white/5 border-white/10 hover:bg-white/10'
                     }`}
-                    onClick={() => fetchMessages(session.session_id)}
+                    onClick={() => fetchMessages(session.sessionId)}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <p className="text-sm text-gray-300 mb-1">
-                          Session: {session.session_id.substring(0, 8)}...
+                          Session: {session.sessionId.substring(0, 8)}...
                         </p>
                         <p className="text-sm text-gray-400 mb-2">
-                          {session.message_count} messages
+                          {session.messageCount} messages
                         </p>
                         <p className="text-xs text-gray-500">
-                          {formatDate(session.last_message)}
+                          {formatDate(session.lastUpdated)}
                         </p>
                       </div>
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          deleteSession(session.session_id)
+                          deleteSession(session.sessionId)
                         }}
                         className="text-red-400 hover:text-red-300 text-sm"
                       >
@@ -224,10 +279,10 @@ export default function ChatAdminPage() {
                 <div key={o.id} className="p-3 rounded-lg bg-white/5 border border-white/10">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-sm font-medium">{o.file_name}</p>
-                      <p className="text-xs text-gray-400">{o.file_type} • {(o.file_size / 1024).toFixed(1)} KB</p>
+                      <p className="text-sm font-medium">{o.fileName}</p>
+                      <p className="text-xs text-gray-400">{o.fileType} • {(o.fileSize / 1024).toFixed(1)} KB</p>
                     </div>
-                    <span className="text-xs text-gray-500">{new Date(o.uploaded_at).toLocaleString()}</span>
+                    <span className="text-xs text-gray-500">{new Date(o.uploadedAt).toLocaleString()}</span>
                   </div>
                 </div>
               ))}

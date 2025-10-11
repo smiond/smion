@@ -33,6 +33,56 @@ export function Chatbot() {
   const [isLoading, setIsLoading] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [currentLanguage, setCurrentLanguage] = useState('hr')
+
+  // Save messages to localStorage
+  const saveMessagesToStorage = (messages: Message[], sessionId: string) => {
+    const chatData = {
+      sessionId,
+      messages: messages.map(msg => ({
+        id: msg.id,
+        text: msg.text,
+        isUser: msg.isUser,
+        timestamp: msg.timestamp.toISOString(),
+        language: currentLanguage
+      })),
+      lastUpdated: new Date().toISOString()
+    }
+    localStorage.setItem(`chatSession_${sessionId}`, JSON.stringify(chatData))
+    
+    // Also save session info
+    const sessions = JSON.parse(localStorage.getItem('chatSessions') || '[]')
+    const existingSession = sessions.find((s: any) => s.sessionId === sessionId)
+    if (existingSession) {
+      existingSession.lastMessage = messages[messages.length - 1]?.text || ''
+      existingSession.messageCount = messages.length
+      existingSession.lastUpdated = new Date().toISOString()
+    } else {
+      sessions.push({
+        sessionId,
+        firstMessage: messages[0]?.text || '',
+        lastMessage: messages[messages.length - 1]?.text || '',
+        messageCount: messages.length,
+        createdAt: new Date().toISOString(),
+        lastUpdated: new Date().toISOString()
+      })
+    }
+    localStorage.setItem('chatSessions', JSON.stringify(sessions))
+  }
+
+  // Load messages from localStorage
+  const loadMessagesFromStorage = (sessionId: string) => {
+    const chatData = localStorage.getItem(`chatSession_${sessionId}`)
+    if (chatData) {
+      const parsed = JSON.parse(chatData)
+      return parsed.messages.map((msg: any) => ({
+        id: msg.id,
+        text: msg.text,
+        isUser: msg.isUser,
+        timestamp: new Date(msg.timestamp)
+      }))
+    }
+    return []
+  }
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -94,6 +144,7 @@ export function Chatbot() {
       const data = await response.json()
 
       // Set sessionId from response if not already set
+      const currentSessionId = sessionId || data.sessionId
       if (!sessionId && data.sessionId) {
         setSessionId(data.sessionId)
       }
@@ -105,7 +156,13 @@ export function Chatbot() {
         timestamp: new Date()
       }
 
-      setMessages(prev => [...prev, botMessage])
+      const updatedMessages = [...messages, userMessage, botMessage]
+      setMessages(updatedMessages)
+      
+      // Save to localStorage
+      if (currentSessionId) {
+        saveMessagesToStorage(updatedMessages, currentSessionId)
+      }
     } catch (error) {
       console.error('Error sending message:', error)
       const errorMessage: Message = {

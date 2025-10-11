@@ -46,12 +46,16 @@ export function CVUploader() {
         console.log('Job offer uploaded successfully:', result.data)
         
         // Save to localStorage for persistence
+        const arrayBuffer = await file.arrayBuffer()
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+        
         const jobOffer = {
           id: Date.now().toString(),
           fileName: file.name,
           fileSize: file.size,
           fileType: file.type,
-          uploadedAt: new Date().toISOString()
+          uploadedAt: new Date().toISOString(),
+          fileData: base64 // Store file content as base64
         }
         
         const existingOffers = JSON.parse(localStorage.getItem('jobOffers') || '[]')

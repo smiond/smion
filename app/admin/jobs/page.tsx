@@ -9,6 +9,7 @@ interface JobOffer {
   fileSize: number
   fileType: string
   uploadedAt: string
+  fileData?: string // Base64 encoded file content
 }
 
 export default function JobsAdminPage() {
@@ -63,6 +64,38 @@ export default function JobsAdminPage() {
     return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
+  const downloadFile = (jobOffer: JobOffer) => {
+    if (!jobOffer.fileData) {
+      console.error('No file data available for download')
+      return
+    }
+
+    try {
+      // Convert base64 back to binary
+      const binaryString = atob(jobOffer.fileData)
+      const bytes = new Uint8Array(binaryString.length)
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+      }
+      
+      // Create blob and download
+      const blob = new Blob([bytes], { type: jobOffer.fileType })
+      const url = URL.createObjectURL(blob)
+      
+      const link = document.createElement('a')
+      link.href = url
+      link.download = jobOffer.fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      // Clean up
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error downloading file:', error)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-6">
       <div className="container mx-auto">
@@ -88,11 +121,24 @@ export default function JobsAdminPage() {
             <div className="space-y-3 max-h-[70vh] overflow-y-auto">
               {offers.map((o) => (
                 <div key={o.id} className="p-3 rounded-lg bg-white/5 border border-white/10 flex justify-between items-center">
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium">{o.fileName}</p>
                     <p className="text-xs text-gray-400">{o.fileType} • {(o.fileSize / 1024).toFixed(1)} KB</p>
+                    <p className="text-xs text-gray-500">{new Date(o.uploadedAt).toLocaleString()}</p>
                   </div>
-                  <span className="text-xs text-gray-500">{new Date(o.uploadedAt).toLocaleString()}</span>
+                  <div className="flex items-center space-x-2">
+                    {o.fileData && (
+                      <button
+                        onClick={() => downloadFile(o)}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+                      >
+                        Download
+                      </button>
+                    )}
+                    {!o.fileData && (
+                      <span className="text-xs text-gray-500">No file data</span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

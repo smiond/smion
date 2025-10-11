@@ -6,7 +6,7 @@ export const runtime = 'nodejs'
 
 // In-memory storage for job offers (works on Vercel)
 let jobOffersMemory: JobOffer[] = [
-  // Mock data for demonstration
+  // Mock data for demonstration (no file data)
   {
     id: 'demo-1',
     fileName: 'Sample Job Offer.pdf',
@@ -25,6 +25,7 @@ interface JobOffer {
   fileSize: number
   fileType: string
   uploadedAt: string
+  fileData?: string // Base64 encoded file content
 }
 
 async function saveJobOffer(fileName: string, fileSize: number, fileType: string): Promise<JobOffer> {

@@ -5,7 +5,16 @@ import path from 'path'
 export const runtime = 'nodejs'
 
 // In-memory storage for job offers (works on Vercel)
-let jobOffersMemory: JobOffer[] = []
+let jobOffersMemory: JobOffer[] = [
+  // Mock data for demonstration
+  {
+    id: 'demo-1',
+    fileName: 'Sample Job Offer.pdf',
+    fileSize: 245760,
+    fileType: 'application/pdf',
+    uploadedAt: new Date().toISOString()
+  }
+]
 
 // File storage for local development
 const JOBS_FILE = path.join(process.cwd(), 'data', 'job-offers.json')

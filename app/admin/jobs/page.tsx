@@ -18,13 +18,42 @@ export default function JobsAdminPage() {
   useEffect(() => {
     (async () => {
       try {
+        // Try to get from server first
         const res = await fetch('/api/upload-cv?action=list')
         const data = await res.json()
-        setOffers(data.offers || [])
+        
+        if (data.offers && data.offers.length > 0) {
+          setOffers(data.offers)
+        } else {
+          // Fallback to localStorage
+          const localOffers = localStorage.getItem('jobOffers')
+          if (localOffers) {
+            setOffers(JSON.parse(localOffers))
+          }
+        }
+      } catch (error) {
+        console.error('Error loading job offers:', error)
+        // Fallback to localStorage
+        const localOffers = localStorage.getItem('jobOffers')
+        if (localOffers) {
+          setOffers(JSON.parse(localOffers))
+        }
       } finally {
         setLoading(false)
       }
     })()
+  }, [])
+
+  // Listen for storage events to update when new uploads happen
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'jobOffers' && e.newValue) {
+        setOffers(JSON.parse(e.newValue))
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   return (

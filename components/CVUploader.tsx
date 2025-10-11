@@ -44,6 +44,25 @@ export function CVUploader() {
       if (response.ok && result.success) {
         setUploadStatus('success')
         console.log('Job offer uploaded successfully:', result.data)
+        
+        // Save to localStorage for persistence
+        const jobOffer = {
+          id: Date.now().toString(),
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          uploadedAt: new Date().toISOString()
+        }
+        
+        const existingOffers = JSON.parse(localStorage.getItem('jobOffers') || '[]')
+        existingOffers.push(jobOffer)
+        localStorage.setItem('jobOffers', JSON.stringify(existingOffers))
+        
+        // Trigger storage event for admin page
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'jobOffers',
+          newValue: JSON.stringify(existingOffers)
+        }))
       } else {
         console.error('Upload failed:', result.error)
         setUploadStatus('error')

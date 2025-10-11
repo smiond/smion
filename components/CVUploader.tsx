@@ -55,8 +55,11 @@ export function CVUploader() {
         }
         
         const existingOffers = JSON.parse(localStorage.getItem('jobOffers') || '[]')
+        console.log('Existing offers before add:', existingOffers)
         existingOffers.push(jobOffer)
+        console.log('New offers array:', existingOffers)
         localStorage.setItem('jobOffers', JSON.stringify(existingOffers))
+        console.log('Saved to localStorage:', localStorage.getItem('jobOffers'))
         
         // Trigger storage event for admin page
         window.dispatchEvent(new StorageEvent('storage', {

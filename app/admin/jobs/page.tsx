@@ -18,22 +18,29 @@ export default function JobsAdminPage() {
   useEffect(() => {
     (async () => {
       try {
-        // Try to get from server first
-        const res = await fetch('/api/upload-cv?action=list')
-        const data = await res.json()
-        
-        if (data.offers && data.offers.length > 0) {
-          setOffers(data.offers)
-        } else {
-          // Fallback to localStorage
-          const localOffers = localStorage.getItem('jobOffers')
-          if (localOffers) {
-            setOffers(JSON.parse(localOffers))
+        // First check localStorage for user's uploads
+        const localOffers = localStorage.getItem('jobOffers')
+        console.log('localStorage jobOffers:', localOffers)
+        if (localOffers) {
+          const parsedOffers = JSON.parse(localOffers)
+          console.log('Parsed local offers:', parsedOffers)
+          if (parsedOffers.length > 0) {
+            console.log('Using localStorage offers:', parsedOffers.length)
+            setOffers(parsedOffers)
+            setLoading(false)
+            return
           }
         }
+        
+        // Fallback to server data (which includes mock data)
+        console.log('Falling back to server data')
+        const res = await fetch('/api/upload-cv?action=list')
+        const data = await res.json()
+        console.log('Server data:', data.offers)
+        setOffers(data.offers || [])
       } catch (error) {
         console.error('Error loading job offers:', error)
-        // Fallback to localStorage
+        // Final fallback to localStorage
         const localOffers = localStorage.getItem('jobOffers')
         if (localOffers) {
           setOffers(JSON.parse(localOffers))

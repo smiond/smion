@@ -97,33 +97,44 @@ function detectLanguage(message: string): string {
   }
 }
 
-// xAI Grok API (OpenAI-compatible) - primary provider when XAI_API_KEY is set
-async function callGrok(prompt: string, language: string, timeoutMs: number = 30000) {
-  const model = process.env.XAI_MODEL || 'grok-4.20-0309-non-reasoning'
-  const client = new OpenAI({
-    apiKey: xaiApiKey,
-    baseURL: 'https://api.x.ai/v1',
-  })
-  const controller = new AbortController()
-  const id = setTimeout(() => controller.abort(), timeoutMs)
-  try {
-    const completion = await client.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content: `Answer questions about Smion Đurđević's CV. Use the provided context. If information is not available, say "Nemam te informacije."
+// xAI Grok via Responses API (multi-agent models are not allowed on /chat/completions)
+async function callGrok(prompt: string, language: string, timeoutMs: number = 60000) {
+  const model = process.env.XAI_MODEL || 'grok-4.20-multi-agent-0309'
+  const instructions = `Answer questions about Smion Đurđević's CV. Use the provided context. If information is not available, say "Nemam te informacije."
 
 CRITICAL: Give ONLY the direct answer. No explanations, no thinking process, no analysis. Maximum 1-2 sentences.
 
 Respond in ${language === 'hr' ? 'Croatian' : language === 'de' ? 'German' : 'English'}.`
-        },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: MAX_OUTPUT_TOKENS,
-      temperature: DEFAULT_TEMPERATURE,
-    }, { signal: controller.signal as any }) as any
-    const text = completion.choices?.[0]?.message?.content
+  const controller = new AbortController()
+  const id = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch('https://api.x.ai/v1/responses', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${xaiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        instructions,
+        input: prompt,
+        max_output_tokens: Math.max(MAX_OUTPUT_TOKENS, 64),
+        temperature: DEFAULT_TEMPERATURE,
+      }),
+      signal: controller.signal,
+    })
+    const data: any = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      const detail = data?.error || data?.message || res.statusText
+      throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail))
+    }
+    const text =
+      data?.output
+        ?.flatMap((item: any) => item?.content || [])
+        ?.filter((part: any) => part?.type === 'output_text' && typeof part?.text === 'string')
+        ?.map((part: any) => part.text)
+        ?.join('\n')
+        ?.trim() || (typeof data?.output_text === 'string' ? data.output_text.trim() : '')
     if (!text) throw new Error('GROK_EMPTY')
     return text as string
   } finally {
@@ -597,19 +608,15 @@ ${cvData.certifications.map(cert => `
     } else if (ollamaApiKey) {
       // quick healthcheck to avoid hanging on misconfig
       const hc = await ollamaHealthcheck(8000)
-      if (!hc.ok || !(await ollamaChatProbe(6000))) {
+      const ollamaHealthy = hc.ok && (await ollamaChatProbe(6000))
+      if (!ollamaHealthy) {
         console.error('Ollama healthcheck failed:', hc.reason)
-        return NextResponse.json({
-          response: detectedLanguage === 'hr'
-            ? 'AI servis trenutno nije dostupan (Ollama Cloud). Provjerite postavke i pokušajte kasnije.'
-            : detectedLanguage === 'de'
-            ? 'Der KI-Dienst ist derzeit nicht verfügbar (Ollama Cloud). Bitte später erneut versuchen.'
-            : 'AI service is not available right now (Ollama Cloud). Please try again later.',
-          sessionId: currentSessionId,
-        })
       }
-      // Ollama Cloud as primary option
+      // Ollama Cloud as next option (skip if unhealthy so later providers can run)
       try {
+        if (!ollamaHealthy) {
+          throw new Error(hc.reason || 'OLLAMA_UNHEALTHY')
+        }
         response = await callOllamaCloud(`Context about Smion Đurđević:\n${context}\n\nQuestion: ${message}`, detectedLanguage)
       } catch (ollamaErr) {
         console.error('Ollama failed:', ollamaErr)

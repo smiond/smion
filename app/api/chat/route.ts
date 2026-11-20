@@ -7,6 +7,7 @@ import { Ollama } from 'ollama'
 import { saveChatMessage } from '@/lib/database'
 
 // Resolve provider keys: prefer Ollama Cloud as primary provider
+const xaiApiKey = process.env.XAI_API_KEY || ''
 const ollamaApiKey = process.env.OLLAMA_API_KEY || ''
 const googleApiKey = process.env.GOOGLE_API_KEY || ''
 const resolvedApiKey = process.env.SMION_OPENAI_API_KEY || process.env.OPENAI_API_KEY || ''
@@ -96,7 +97,40 @@ function detectLanguage(message: string): string {
   }
 }
 
-// Ollama Cloud API function using Ollama client with fail-fast timeout
+// xAI Grok API (OpenAI-compatible) - primary provider when XAI_API_KEY is set
+async function callGrok(prompt: string, language: string, timeoutMs: number = 30000) {
+  const model = process.env.XAI_MODEL || 'grok-4.20-0309-non-reasoning'
+  const client = new OpenAI({
+    apiKey: xaiApiKey,
+    baseURL: 'https://api.x.ai/v1',
+  })
+  const controller = new AbortController()
+  const id = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const completion = await client.chat.completions.create({
+      model,
+      messages: [
+        {
+          role: 'system',
+          content: `Answer questions about Smion Đurđević's CV. Use the provided context. If information is not available, say "Nemam te informacije."
+
+CRITICAL: Give ONLY the direct answer. No explanations, no thinking process, no analysis. Maximum 1-2 sentences.
+
+Respond in ${language === 'hr' ? 'Croatian' : language === 'de' ? 'German' : 'English'}.`
+        },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: MAX_OUTPUT_TOKENS,
+      temperature: DEFAULT_TEMPERATURE,
+    }, { signal: controller.signal as any }) as any
+    const text = completion.choices?.[0]?.message?.content
+    if (!text) throw new Error('GROK_EMPTY')
+    return text as string
+  } finally {
+    clearTimeout(id)
+  }
+}
+
 async function callOllamaCloud(prompt: string, language: string, timeoutMs: number = 40000) {
   const baseURL = process.env.OLLAMA_URL || 'https://ollama.com'
   const model = process.env.OLLAMA_MODEL || 'glm-4.6'
@@ -376,7 +410,7 @@ const cvData = {
 export async function POST(request: NextRequest) {
   try {
     // Ensure at least one provider is configured
-    if (!googleApiKey && !resolvedApiKey && !ollamaApiKey) {
+    if (!xaiApiKey && !googleApiKey && !resolvedApiKey && !ollamaApiKey) {
       console.error('No AI API key is configured')
       // Return a mock response for testing
       return NextResponse.json({ 
@@ -548,8 +582,19 @@ ${cvData.certifications.map(cert => `
     let response = ""
     const startedAtMs = Date.now()
     
-    // Try providers in order: Ollama Cloud -> Google Gemini -> OpenAI
-    if (ollamaApiKey) {
+    // Try providers in order: xAI Grok -> Ollama Cloud -> Google Gemini -> OpenAI
+    let grokOk = false
+    if (xaiApiKey) {
+      try {
+        response = await callGrok(`Context about Smion Đurđević:\n${context}\n\nQuestion: ${message}`, detectedLanguage)
+        grokOk = true
+      } catch (grokErr) {
+        console.error('Grok failed, falling back:', grokErr)
+      }
+    }
+    if (grokOk) {
+      // answered by Grok
+    } else if (ollamaApiKey) {
       // quick healthcheck to avoid hanging on misconfig
       const hc = await ollamaHealthcheck(8000)
       if (!hc.ok || !(await ollamaChatProbe(6000))) {
@@ -747,7 +792,7 @@ Context:\n${context}\n\nQuestion: ${message}`
     }
 
     const generationMs = Date.now() - startedAtMs
-    const provider = ollamaApiKey ? 'Ollama' : (googleApiKey ? 'Gemini' : 'OpenAI')
+    const provider = grokOk ? 'Grok' : ollamaApiKey ? 'Ollama' : (googleApiKey ? 'Gemini' : 'OpenAI')
     console.log(`[ChatAPI] provider=${provider} temperature=${DEFAULT_TEMPERATURE} maxTokens=${MAX_OUTPUT_TOKENS} timeMs=${generationMs} chars=${response.length}`)
 
     // Save AI response to database
